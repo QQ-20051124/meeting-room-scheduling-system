@@ -129,14 +129,7 @@
                   <text class="detail-icon">📦</text>
                   <view class="detail-info">
                     <text class="detail-label">设备设施</text>
-                    <text class="detail-value">{{ selectedRoom.equipment }}</text>
-                  </view>
-                </view>
-                <view class="detail-item">
-                  <text class="detail-icon">📝</text>
-                  <view class="detail-info">
-                    <text class="detail-label">描述</text>
-                    <text class="detail-value">{{ selectedRoom.description || '暂无描述' }}</text>
+                    <text class="detail-value">{{ selectedRoom.equipment || '无' }}</text>
                   </view>
                 </view>
               </view>
@@ -306,6 +299,7 @@ import { useRoomStore } from '@/stores/room'
 import CustomTabbar from '@/components/custom-tabbar/CustomTabbar.vue'
 import { useReservationStore } from '@/stores/reservation'
 import { getToday } from '@/utils/date'
+import type { Room, User } from '@/types'
 
 const userStore = useUserStore()
 const roomStore = useRoomStore()

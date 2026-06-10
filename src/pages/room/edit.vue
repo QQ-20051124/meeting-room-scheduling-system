@@ -138,7 +138,7 @@ function handleUpdate() {
     capacity: room.capacity,
     location: room.location,
     equipment: room.equipment || '无',
-    status: room.status
+    status: room.status as 'available' | 'unavailable' | 'maintenance'
   })
 
   uni.showToast({ title: '修改成功', icon: 'success' })

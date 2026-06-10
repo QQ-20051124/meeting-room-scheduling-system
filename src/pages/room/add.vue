@@ -128,7 +128,7 @@ function handleSubmit() {
     capacity: room.capacity,
     location: room.location,
     equipment: room.equipment || '无',
-    status: room.status
+    status: room.status as 'available' | 'unavailable' | 'maintenance'
   })
 
   uni.showToast({ title: '添加成功', icon: 'success' })

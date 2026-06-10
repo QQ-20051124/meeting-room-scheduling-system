@@ -9,10 +9,9 @@ export const mockUsers: User[] = [
     role: 'admin',
     phone: '13800138000',
     email: 'admin@example.com',
-    avatar: '#2563EB',
+    createdAt: '2024-01-01',
     schoolId: 'ADMIN001',
-    isVerified: true,
-    createdAt: '2024-01-01'
+    isCertified: true
   },
   {
     id: '2',
@@ -22,11 +21,9 @@ export const mockUsers: User[] = [
     role: 'student',
     phone: '13800138001',
     email: 'zhangsan@example.com',
-    department: '计算机学院',
-    avatar: '#10B981',
+    createdAt: '2024-01-02',
     schoolId: '2021001001',
-    isVerified: true,
-    createdAt: '2024-01-02'
+    isCertified: true
   },
   {
     id: '3',
@@ -36,67 +33,21 @@ export const mockUsers: User[] = [
     role: 'student',
     phone: '13800138002',
     email: 'lisi@example.com',
-    department: '软件学院',
-    avatar: '#F59E0B',
-    schoolId: '2021002002',
-    isVerified: true,
-    createdAt: '2024-01-03'
+    createdAt: '2024-01-03',
+    schoolId: '2021001002',
+    isCertified: true
   },
   {
     id: '4',
     username: 'teacher001',
     password: '123456',
-    realName: '王教授',
+    realName: '王老师',
     role: 'teacher',
     phone: '13800138003',
-    email: 'wang@example.com',
-    department: '计算机学院',
-    avatar: '#8B5CF6',
-    schoolId: 'TEA001',
-    isVerified: true,
-    createdAt: '2024-01-04'
-  },
-  {
-    id: '5',
-    username: 'teacher002',
-    password: '123456',
-    realName: '刘教授',
-    role: 'teacher',
-    phone: '13800138004',
-    email: 'liu@example.com',
-    department: '数学学院',
-    avatar: '#06B6D4',
-    schoolId: 'TEA002',
-    isVerified: true,
-    createdAt: '2024-01-05'
-  },
-  {
-    id: '6',
-    username: 'org001',
-    password: '123456',
-    realName: '学生会',
-    role: 'organization',
-    phone: '13800138005',
-    email: 'union@example.com',
-    department: '学生会',
-    avatar: '#EF4444',
-    schoolId: 'ORG001',
-    isVerified: true,
-    createdAt: '2024-01-06'
-  },
-  {
-    id: '7',
-    username: 'org002',
-    password: '123456',
-    realName: '科技创新社',
-    role: 'organization',
-    phone: '13800138006',
-    email: 'tech@example.com',
-    department: '社团联合会',
-    avatar: '#EC4899',
-    schoolId: 'ORG002',
-    isVerified: true,
-    createdAt: '2024-01-07'
+    email: 'wanglaoshi@example.com',
+    createdAt: '2024-01-04',
+    schoolId: 'T001',
+    isCertified: true
   }
 ]
 
@@ -149,6 +100,36 @@ export const mockRooms: Room[] = [
     location: '综合楼101',
     equipment: '投影仪、白板、音响、视频会议',
     status: 'available',
+    createdAt: '2024-01-01'
+  },
+  {
+    id: '6',
+    code: 'RM006',
+    name: '第六会议室',
+    capacity: 8,
+    location: '综合楼102',
+    equipment: '投影仪、白板',
+    status: 'available',
+    createdAt: '2024-01-01'
+  },
+  {
+    id: '7',
+    code: 'RM007',
+    name: '第七会议室',
+    capacity: 40,
+    location: '行政楼501',
+    equipment: '投影仪、白板、音响、视频会议、直播设备',
+    status: 'available',
+    createdAt: '2024-01-01'
+  },
+  {
+    id: '8',
+    code: 'RM008',
+    name: '第八会议室',
+    capacity: 12,
+    location: '图书馆301',
+    equipment: '投影仪、白板、音响',
+    status: 'unavailable',
     createdAt: '2024-01-01'
   }
 ]

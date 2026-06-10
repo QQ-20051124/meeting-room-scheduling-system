@@ -239,22 +239,22 @@ isLoggedIn.value = userStore.isLoggedIn()
 }
 
 .title-text {
-  font-size: $font-lg;
-  font-weight: 600;
-  color: $text-primary;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: $text-color;
 }
 
 .matched-section {
-  margin-top: $spacing-xl;
-  padding-top: $spacing-md;
+  margin-top: 40rpx;
+  padding-top: 30rpx;
   border-top: 2rpx solid $border-color;
 }
 
 .matched-title {
-  font-size: $font-md;
-  font-weight: 600;
-  color: $text-primary;
-  margin-bottom: $spacing-md;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: $text-color;
+  margin-bottom: 20rpx;
 }
 
 .matched-list {
@@ -264,7 +264,7 @@ isLoggedIn.value = userStore.isLoggedIn()
 }
 
 .matched-item {
-  background: $bg-card;
+  background: $bg-color;
   border-radius: $radius;
   padding: 24rpx;
 }
@@ -283,9 +283,9 @@ isLoggedIn.value = userStore.isLoggedIn()
 }
 
 .matched-name {
-  font-size: $font-base;
-  font-weight: 600;
-  color: $text-primary;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: $text-color;
 }
 
 .matched-info {
@@ -321,7 +321,7 @@ isLoggedIn.value = userStore.isLoggedIn()
   align-items: center;
   padding: 40rpx;
   margin-top: 40rpx;
-  background: $bg-card;
+  background: $bg-color;
   border-radius: $radius;
 }
 

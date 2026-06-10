@@ -29,7 +29,9 @@ export const useUserStore = defineStore('user', () => {
     const newUser: User = {
       ...user,
       id: String(Date.now()),
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      schoolId: '',
+      isCertified: false
     }
     mockUsers.push(newUser)
     currentUser.value = newUser
@@ -51,8 +53,35 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  function certify(certInfo: { schoolId: string; realName: string; phone: string; email: string; role: string }): boolean {
+    if (!currentUser.value) return false
+    
+    currentUser.value.schoolId = certInfo.schoolId
+    currentUser.value.realName = certInfo.realName
+    currentUser.value.phone = certInfo.phone
+    currentUser.value.email = certInfo.email
+    currentUser.value.role = certInfo.role
+    currentUser.value.isCertified = true
+    
+    uni.setStorageSync('currentUser', JSON.stringify(currentUser.value))
+    return true
+  }
+
+  function changePassword(oldPassword: string, newPassword: string): boolean {
+    if (!currentUser.value) return false
+    
+    if (currentUser.value.password !== oldPassword) {
+      return false
+    }
+    
+    currentUser.value.password = newPassword
+    uni.setStorageSync('currentUser', JSON.stringify(currentUser.value))
+    return true
+  }
+
   const isAdmin = () => currentUser.value?.role === 'admin'
   const isLoggedIn = () => currentUser.value !== null
+  const isCertified = () => currentUser.value?.isCertified === true
 
   return {
     currentUser,
@@ -61,7 +90,10 @@ export const useUserStore = defineStore('user', () => {
     register,
     updateUser,
     loadUser,
+    certify,
+    changePassword,
     isAdmin,
-    isLoggedIn
+    isLoggedIn,
+    isCertified
   }
 })

@@ -3,15 +3,12 @@ export interface User {
   username: string
   password: string
   realName: string
-  role: 'admin' | 'teacher' | 'student' | 'organization'
+  role: 'admin' | 'teacher' | 'student' | 'organization' | 'user'
   phone: string
   email: string
-  department?: string // 院系/部门
-  avatar?: string // 头像URL或颜色
-  schoolId?: string // 学号/教工号
-  idCard?: string // 身份证号（加密存储）
-  isVerified: boolean // 是否已实名验证
   createdAt: string
+  schoolId?: string
+  isCertified?: boolean
 }
 
 export interface Room {
@@ -38,9 +35,6 @@ export interface Reservation {
   participantCount: number
   applicant: string
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
-  hasConflict?: boolean // 是否有冲突
-  conflictReason?: string // 冲突原因
-  notified?: boolean // 是否已通知
   createdAt: string
 }
 

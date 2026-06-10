@@ -4,7 +4,11 @@ import type { Room } from '@/types'
 import { mockRooms } from '@/data/mock'
 
 export const useRoomStore = defineStore('room', () => {
-  const rooms = ref<Room[]>([...mockRooms])
+  const rooms = ref<Room[]>([])
+
+  function loadRooms() {
+    rooms.value = [...mockRooms]
+  }
 
   function addRoom(room: Omit<Room, 'id' | 'createdAt'>): Room {
     const newRoom: Room = {
@@ -48,6 +52,7 @@ export const useRoomStore = defineStore('room', () => {
 
   return {
     rooms,
+    loadRooms,
     addRoom,
     deleteRoom,
     updateRoom,

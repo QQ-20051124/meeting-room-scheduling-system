@@ -1,5 +1,13 @@
 <template>
   <view class="container">
+    <!-- 返回按钮 -->
+    <view class="back-header">
+      <view class="back-btn" @click="goBack">
+        <text class="back-icon">←</text>
+        <text class="back-text">返回</text>
+      </view>
+    </view>
+    
     <view v-if="room" class="form-card">
       <view class="form-item">
         <text class="form-label">会议室编号</text>
@@ -102,6 +110,10 @@ function onStatusChange(e: any) {
   room.status = statusValues[statusOptions[e.detail.value]]
 }
 
+function goBack() {
+  uni.navigateBack()
+}
+
 function handleUpdate() {
   if (!room.code.trim()) {
     uni.showToast({ title: '请输入会议室编号', icon: 'none' })
@@ -174,6 +186,37 @@ onMounted(() => {
 .container {
   min-height: 100vh;
   padding: 20rpx;
+}
+
+.back-header {
+  margin-bottom: 20rpx;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 24rpx;
+  cursor: pointer;
+  width: fit-content;
+  
+  &:active {
+    background: rgba(59, 130, 246, 0.2);
+  }
+}
+
+.back-icon {
+  font-size: 36rpx;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.back-text {
+  font-size: 30rpx;
+  color: #3b82f6;
+  font-weight: 500;
 }
 
 .form-card {

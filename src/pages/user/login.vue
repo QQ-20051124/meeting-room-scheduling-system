@@ -95,10 +95,10 @@ function goToRegister() {
 
 .login-title {
   display: block;
-  font-size: $font-xl;
-  font-weight: 600;
-  color: $text-primary;
-  margin-bottom: $spacing-xs;
+  font-size: 40rpx;
+  font-weight: bold;
+  color: $text-color;
+  margin-bottom: 10rpx;
 }
 
 .login-sub {

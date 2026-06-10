@@ -1,71 +1,46 @@
 <template>
   <view class="container">
-    <!-- 未登录状态 -->
-    <view v-if="!isLoggedIn" class="not-login-section">
-      <view class="not-login-card">
-        <view class="not-login-icon">◯</view>
-        <text class="not-login-title">请先登录</text>
-        <text class="not-login-desc">登录后可查看您的预约记录</text>
-        <view class="btn-primary mt-lg" @click="goToLogin">立即登录</view>
-      </view>
+    <view v-if="!isLoggedIn" class="not-login">
+      <text class="not-login-icon">👤</text>
+      <text class="not-login-text">请先登录</text>
+      <view class="btn-primary mt-30" @click="goToLogin">立即登录</view>
     </view>
 
-    <!-- 登录后内容 -->
     <view v-else class="reservation-content">
-      <!-- 标签页 -->
-      <view class="tabs-wrapper">
-        <view class="tabs">
-          <view 
-            v-for="tab in tabs" 
-            :key="tab.value"
-            :class="['tab-item', { active: activeTab === tab.value }]"
-            @click="activeTab = tab.value"
-          >
-            {{ tab.label }}
-            <view v-if="getTabCount(tab.value) > 0" class="tab-badge">{{ getTabCount(tab.value) }}</view>
-          </view>
+      <view class="tabs">
+        <view 
+          v-for="tab in tabs" 
+          :key="tab.value"
+          :class="['tab-item', { active: activeTab === tab.value }]"
+          @click="activeTab = tab.value"
+        >
+          {{ tab.label }}
         </view>
       </view>
 
-      <!-- 预约列表 -->
       <view class="reservation-list">
         <view 
           v-for="res in filteredReservations" 
           :key="res.id" 
           class="reservation-card"
         >
-          <!-- 卡片头部 -->
-          <view class="card-header">
-            <view class="room-info">
+          <view class="res-header">
+            <view class="res-room">
               <text class="room-code">{{ res.roomCode }}</text>
               <text class="room-name">{{ res.roomName }}</text>
             </view>
-            <view :class="['status-tag', res.status]">{{ getStatusText(res.status) }}</view>
+            <view :class="['res-status', res.status]">{{ getStatusText(res.status) }}</view>
           </view>
-          
-          <!-- 会议主题 -->
-          <view class="meeting-info">
-            <text class="meeting-icon">◆</text>
-            <text class="meeting-title">{{ res.meetingTopic }}</text>
-          </view>
-          
-          <!-- 时间地点 -->
-          <view class="time-location">
-            <view class="time-item">
-              <text class="time-icon">●</text>
-              <text class="time-text">{{ res.date }} {{ res.startTime }} - {{ res.endTime }}</text>
-            </view>
-            <view class="time-item">
-              <text class="time-icon">○</text>
-              <text class="time-text">{{ res.participantCount }}人</text>
-            </view>
-          </view>
-          
-          <!-- 操作按钮 -->
-          <view class="card-actions">
+
+          <view class="res-date">📅 {{ res.date }}</view>
+          <view class="res-time">🕐 {{ res.startTime }} - {{ res.endTime }}</view>
+          <view class="res-topic">📋 {{ res.meetingTopic }}</view>
+          <view class="res-participants">👥 {{ res.participantCount }}人</view>
+
+          <view class="res-actions">
             <view 
               v-if="res.status === 'pending'" 
-              class="btn-outline"
+              class="btn-secondary"
               @click="handleCancel(res.id)"
             >
               取消预约
@@ -81,14 +56,14 @@
         </view>
       </view>
 
-      <!-- 空状态 -->
       <view v-if="filteredReservations.length === 0" class="empty-state">
-        <view class="empty-icon">◉</view>
-        <text class="empty-title">暂无{{ tabs.find(t => t.value === activeTab)?.label }}记录</text>
-        <text class="empty-desc">{{ activeTab === 'all' ? '快去预约一个会议室吧' : '换个标签看看' }}</text>
-        <view v-if="activeTab === 'all'" class="btn-secondary mt-lg" @click="goToApply">立即预约</view>
+        <text class="empty-icon">📅</text>
+        <text class="empty-text">暂无{{ tabs.find(t => t.value === activeTab)?.label }}记录</text>
       </view>
     </view>
+    
+    <!-- 自定义底部导航 -->
+    <CustomTabbar current="reservation" />
   </view>
 </template>
 
@@ -97,6 +72,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useReservationStore } from '@/stores/reservation'
 import { useUserStore } from '@/stores/user'
 import { getToday, isBefore, isTimeBefore } from '@/utils/date'
+import CustomTabbar from '@/components/custom-tabbar/CustomTabbar.vue'
 
 const reservationStore = useReservationStore()
 const userStore = useUserStore()
@@ -122,11 +98,6 @@ const filteredReservations = computed(() => {
   }
   return userReservations.value.filter(r => r.status === activeTab.value)
 })
-
-function getTabCount(tabValue: string): number {
-  if (tabValue === 'all') return userReservations.value.length
-  return userReservations.value.filter(r => r.status === tabValue).length
-}
 
 function getStatusText(status: string): string {
   const map: Record<string, string> = {
@@ -165,10 +136,6 @@ function goToLogin() {
   uni.navigateTo({ url: '/pages/user/login' })
 }
 
-function goToApply() {
-  uni.navigateTo({ url: '/pages/reservation/apply' })
-}
-
 onMounted(() => {
   userStore.loadUser()
   isLoggedIn.value = userStore.isLoggedIn()
@@ -178,149 +145,96 @@ onMounted(() => {
 <style lang="scss" scoped>
 .container {
   min-height: 100vh;
-  background: $bg-page;
-  padding-bottom: 180rpx;
+  padding: 20rpx;
+  padding-bottom: 280rpx;
 }
 
-/* ===== 未登录状态 ===== */
-.not-login-section {
-  padding: $spacing-xl;
-}
-
-.not-login-card {
-  background: $bg-card;
-  border-radius: $radius-xl;
-  padding: $spacing-2xl;
+.not-login {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: $shadow-lg;
+  justify-content: center;
+  padding: 100rpx 0;
 }
 
 .not-login-icon {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 50%;
-  background: rgba($primary-color, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 70rpx;
-  color: $primary-color;
-  margin-bottom: $spacing-lg;
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
 }
 
-.not-login-title {
-  font-size: $font-xl;
-  font-weight: 600;
-  color: $text-title;
-  margin-bottom: $spacing-xs;
+.not-login-text {
+  font-size: 32rpx;
+  color: $text-secondary;
 }
 
-.not-login-desc {
-  font-size: $font-sm;
-  color: $text-muted;
-  margin-bottom: $spacing-xl;
-}
-
-/* ===== 标签页 ===== */
-.tabs-wrapper {
-  padding: $spacing-lg;
-  padding-bottom: 0;
+.reservation-content {
+  padding-top: 10rpx;
 }
 
 .tabs {
   display: flex;
-  background: $bg-card;
-  border-radius: $radius-xl;
-  padding: 8rpx;
-  box-shadow: $shadow-sm;
+  background: $white;
+  border-radius: $radius;
+  padding: 10rpx;
+  margin-bottom: 20rpx;
 }
 
 .tab-item {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: $spacing-sm;
-  font-size: $font-sm;
+  text-align: center;
+  padding: 20rpx;
+  font-size: 26rpx;
   color: $text-secondary;
-  border-radius: $radius-lg;
-  transition: all 0.2s ease;
-  position: relative;
+  border-radius: 8rpx;
   
   &.active {
-    background: linear-gradient(135deg, $primary-color, $primary-dark);
+    background: $primary-color;
     color: $white;
-    
-    .tab-badge {
-      background: rgba(255, 255, 255, 0.3);
-      color: $white;
-    }
   }
 }
 
-.tab-badge {
-  position: absolute;
-  top: 8rpx;
-  right: 16rpx;
-  min-width: 32rpx;
-  height: 32rpx;
-  padding: 0 8rpx;
-  border-radius: $radius-full;
-  font-size: $font-xs;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba($primary-color, 0.1);
-  color: $primary-color;
-}
-
-/* ===== 预约列表 ===== */
 .reservation-list {
-  padding: $spacing-lg;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 20rpx;
 }
 
 .reservation-card {
-  background: $bg-card;
-  border-radius: $radius-xl;
-  padding: $spacing-md;
-  box-shadow: $shadow-sm;
+  background: $white;
+  border-radius: $radius;
+  padding: 30rpx;
+  box-shadow: $shadow;
 }
 
-.card-header {
+.res-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-sm;
+  margin-bottom: 20rpx;
 }
 
-.room-info {
+.res-room {
   display: flex;
   align-items: center;
-  gap: $spacing-xs;
 }
 
 .room-code {
-  font-size: $font-xs;
-  font-weight: 700;
+  font-size: 24rpx;
   color: $primary-color;
+  font-weight: bold;
+  margin-right: 10rpx;
 }
 
 .room-name {
-  font-size: $font-md;
-  font-weight: 600;
-  color: $text-title;
+  font-size: 28rpx;
+  color: $text-color;
+  font-weight: bold;
 }
 
-.status-tag {
-  font-size: $font-xs;
+.res-status {
+  font-size: 22rpx;
   padding: 6rpx 16rpx;
-  border-radius: $radius-full;
-  font-weight: 500;
+  border-radius: 20rpx;
   
   &.pending {
     background: rgba($warning-color, 0.1);
@@ -335,139 +249,38 @@ onMounted(() => {
     color: $error-color;
   }
   &.completed {
-    background: $bg-hover;
-    color: $text-muted;
+    background: rgba($text-light, 0.1);
+    color: $text-light;
   }
 }
 
-.meeting-info {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  margin-bottom: $spacing-sm;
-}
-
-.meeting-icon {
-  font-size: $font-sm;
-  color: $primary-color;
-}
-
-.meeting-title {
-  font-size: $font-base;
-  color: $text-primary;
-}
-
-.time-location {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  margin-bottom: $spacing-md;
-}
-
-.time-item {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-}
-
-.time-icon {
-  font-size: $font-xs;
-  color: $text-light;
-}
-
-.time-text {
-  font-size: $font-sm;
+.res-date, .res-time, .res-topic, .res-participants {
+  font-size: 26rpx;
   color: $text-secondary;
+  margin-bottom: 10rpx;
 }
 
-.card-actions {
+.res-actions {
+  margin-top: 20rpx;
   display: flex;
-  gap: $spacing-sm;
-  padding-top: $spacing-sm;
-  border-top: 1rpx solid $border-light;
+  gap: 20rpx;
 }
 
-.btn-outline {
-  padding: $spacing-sm $spacing-md;
-  border: 1rpx solid $border-color;
-  border-radius: $radius-lg;
-  font-size: $font-sm;
-  color: $text-primary;
-  
-  &:active {
-    background: $bg-hover;
-  }
-}
-
-.btn-danger {
-  padding: $spacing-sm $spacing-md;
-  background: rgba($error-color, 0.1);
-  border-radius: $radius-lg;
-  font-size: $font-sm;
-  color: $error-color;
-  
-  &:active {
-    background: rgba($error-color, 0.15);
-  }
-}
-
-/* ===== 空状态 ===== */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: $spacing-3xl;
+  padding: 100rpx 0;
 }
 
 .empty-icon {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  background: $bg-hover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 60rpx;
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
   color: $text-light;
-  margin-bottom: $spacing-lg;
-}
-
-.empty-title {
-  font-size: $font-lg;
-  font-weight: 600;
-  color: $text-primary;
-  margin-bottom: $spacing-xs;
-}
-
-.empty-desc {
-  font-size: $font-sm;
-  color: $text-muted;
-}
-
-.btn-primary, .btn-secondary {
-  padding: $spacing-sm $spacing-xl;
-  border-radius: $radius-lg;
-  font-size: $font-base;
-  font-weight: 500;
-  
-  &:active {
-    opacity: 0.9;
-  }
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, $primary-color, $primary-dark);
-  color: $white;
-}
-
-.btn-secondary {
-  background: $bg-card;
-  color: $text-primary;
-  border: 1rpx solid $border-color;
-}
-
-.mt-lg {
-  margin-top: $spacing-lg;
 }
 </style>

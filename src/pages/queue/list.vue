@@ -111,9 +111,9 @@ onMounted(() => {
 }
 
 .queue-title {
-  font-size: $font-lg;
-  font-weight: 600;
-  color: $text-primary;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: $text-color;
 }
 
 .queue-count {
@@ -163,10 +163,10 @@ onMounted(() => {
 }
 
 .queue-applicant {
-  font-size: $font-base;
-  font-weight: 600;
-  color: $text-primary;
-  margin-bottom: $spacing-xs;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: $text-color;
+  margin-bottom: 8rpx;
 }
 
 .queue-topic {

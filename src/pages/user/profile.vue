@@ -1,250 +1,288 @@
 <template>
-  <view class="profile-container">
-    <!-- 左侧侧边栏 -->
-    <view class="sidebar">
-      <view class="sidebar-header">
-        <view class="logo">
-          <text class="logo-icon">◉</text>
-          <text class="logo-text">会议室调度系统</text>
+  <view class="container">
+    <!-- 顶部背景 -->
+    <view class="profile-bg">
+      <view class="bg-gradient"></view>
+    </view>
+
+    <!-- 用户信息卡片 -->
+    <view class="profile-card">
+      <view class="avatar-section">
+        <view class="avatar" @click="changeAvatar">
+          <text class="avatar-text">{{ getAvatarText(currentUser) }}</text>
+          <view class="avatar-edit">
+            <text class="edit-icon">📷</text>
+          </view>
+        </view>
+        <view class="user-info">
+          <text class="user-name">{{ currentUser?.realName || currentUser?.username || '未登录' }}</text>
+          <view :class="['auth-badge', { certified: isCertified, uncertified: !isCertified }]">
+            <text>{{ isCertified ? '✓ 已认证' : '⚠️ 未认证' }}</text>
+          </view>
+        </view>
+        <view v-if="!isLoggedIn" class="login-btn" @click="goToLogin">
+          <text>登录 / 注册</text>
         </view>
       </view>
-      
-      <view class="sidebar-menu">
-        <view 
-          v-for="item in menuItems" 
-          :key="item.key"
-          :class="['menu-item', { active: activeMenu === item.key }]"
-          @click="activeMenu = item.key"
-        >
-          <text class="menu-icon">{{ item.icon }}</text>
-          <text class="menu-text">{{ item.label }}</text>
+
+      <!-- 未认证用户红色边框提示 -->
+      <view v-if="isLoggedIn && !isCertified" class="certification-prompt">
+        <view class="prompt-icon">🔒</view>
+        <view class="prompt-content">
+          <text class="prompt-title">请完成身份认证</text>
+          <text class="prompt-desc">认证后可享受完整预约功能</text>
+        </view>
+        <view class="prompt-action" @click="goToCertify">
+          <text>立即认证</text>
         </view>
       </view>
     </view>
 
-    <!-- 主内容区域 -->
-    <view class="main-content">
-      <!-- 顶部导航 -->
-      <view class="top-header">
-        <view class="header-left">
-          <text class="page-title">{{ currentPageTitle }}</text>
-        </view>
-        <view class="header-right">
-          <view class="search-box">
-            <text class="search-icon">◉</text>
-            <input class="search-input" placeholder="搜索..." />
-          </view>
+    <!-- 身份认证入口 -->
+    <view v-if="isLoggedIn" class="section-card">
+      <view class="section-header">
+        <text class="section-title">👤 身份认证</text>
+        <view :class="['section-status', { completed: isCertified }]">
+          <text>{{ isCertified ? '已完成' : '待认证' }}</text>
         </view>
       </view>
+      <view class="certify-info" @click="goToCertify">
+        <view class="certify-icon">
+          <text>{{ isCertified ? '✅' : '📝' }}</text>
+        </view>
+        <view class="certify-detail">
+          <text class="certify-title">{{ isCertified ? '认证信息' : '点击进行身份认证' }}</text>
+          <text class="certify-desc">{{ isCertified ? `学号/教工号: ${currentUser?.schoolId}` : '需要学号或教工号进行认证' }}</text>
+        </view>
+        <text class="certify-arrow">›</text>
+      </view>
+    </view>
 
-      <!-- 内容区域 -->
-      <view class="content-area">
-        <!-- 个人信息卡片 -->
-        <view v-if="activeMenu === 'profile'" class="profile-section">
-          <view class="profile-card">
-            <view class="card-header">
-              <view class="user-avatar-wrap">
-                <view class="user-avatar" :style="{ background: currentUser?.avatar || '#2563EB' }">
-                  <text class="avatar-text">{{ currentUser?.realName?.charAt(0) }}</text>
-                </view>
-                <view class="avatar-edit" @click="goToEdit">
-                  <text class="edit-icon">✎</text>
-                </view>
-              </view>
-              <view class="user-info">
-                <text class="user-name">{{ currentUser?.realName }}</text>
-                <text class="user-role">{{ getRoleText(currentUser?.role) }}</text>
-                <view :class="['verify-badge', currentUser?.isVerified ? 'verified' : 'unverified']">
-                  {{ currentUser?.isVerified ? '✓ 已认证' : '○ 未认证' }}
-                </view>
-              </view>
-            </view>
-            <view class="card-body">
-              <view class="info-grid">
-                <view class="info-item">
-                  <text class="info-label">用户名</text>
-                  <text class="info-value">{{ currentUser?.username }}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">{{ getSchoolIdLabel(currentUser?.role) }}</text>
-                  <text class="info-value">{{ currentUser?.schoolId || '-' }}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">院系/部门</text>
-                  <text class="info-value">{{ currentUser?.department || '-' }}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">邮箱</text>
-                  <text class="info-value">{{ currentUser?.email || '-' }}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">手机号</text>
-                  <text class="info-value">{{ currentUser?.phone || '-' }}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">注册时间</text>
-                  <text class="info-value">{{ currentUser?.createdAt || '-' }}</text>
-                </view>
-              </view>
-            </view>
-          </view>
-
-          <view class="action-cards">
-            <view class="action-card" @click="goToEdit">
-              <view class="action-icon">✎</view>
-              <view class="action-content">
-                <text class="action-title">个人信息维护</text>
-                <text class="action-desc">修改用户名、头像等个人信息</text>
-              </view>
-              <text class="action-arrow">→</text>
-            </view>
-            <view class="action-card" @click="goToChangePassword">
-              <view class="action-icon">🔑</view>
-              <view class="action-content">
-                <text class="action-title">修改密码</text>
-                <text class="action-desc">定期更换密码保证账户安全</text>
-              </view>
-              <text class="action-arrow">→</text>
-            </view>
-            <view class="action-card" @click="handleLogout">
-              <view class="action-icon logout">◉</view>
-              <view class="action-content">
-                <text class="action-title">退出登录</text>
-                <text class="action-desc">安全退出当前账号</text>
-              </view>
-              <text class="action-arrow">→</text>
-            </view>
+    <!-- 个人信息编辑 -->
+    <view v-if="isLoggedIn" class="section-card">
+      <view class="section-header">
+        <text class="section-title">👤 个人信息</text>
+      </view>
+      <view class="info-list">
+        <view class="info-item" @click="editField('realName')">
+          <text class="info-label">真实姓名</text>
+          <view class="info-value-wrap">
+            <text class="info-value">{{ currentUser?.realName || '未设置' }}</text>
+            <text class="info-arrow">›</text>
           </view>
         </view>
-
-        <!-- 我的预约 -->
-        <view v-if="activeMenu === 'reservations'" class="reservations-section">
-          <view class="tabs">
-            <view 
-              v-for="tab in reservationTabs" 
-              :key="tab.key"
-              :class="['tab-item', { active: activeReservationTab === tab.key }]"
-              @click="activeReservationTab = tab.key"
-            >
-              {{ tab.label }}
-              <view v-if="tab.count" class="tab-badge">{{ tab.count }}</view>
-            </view>
+        <view class="info-item" @click="editField('username')">
+          <text class="info-label">用户名</text>
+          <view class="info-value-wrap">
+            <text class="info-value">{{ currentUser?.username || '未设置' }}</text>
+            <text class="info-arrow">›</text>
           </view>
-          <view class="reservation-table">
-            <view class="table-header">
-              <text class="th">会议室</text>
-              <text class="th">会议主题</text>
-              <text class="th">日期时间</text>
-              <text class="th">参会人数</text>
-              <text class="th">状态</text>
-              <text class="th">操作</text>
-            </view>
-            <view v-for="res in filteredReservations" :key="res.id" class="table-row">
-              <text class="td">{{ res.roomCode }} {{ res.roomName }}</text>
-              <text class="td">{{ res.meetingTopic }}</text>
-              <text class="td">{{ res.date }} {{ res.startTime }}-{{ res.endTime }}</text>
-              <text class="td">{{ res.participantCount }}人</text>
-              <view :class="['td status-cell', res.status]">{{ getStatusText(res.status) }}</view>
-              <view class="td actions">
-                <text v-if="res.status === 'pending'" class="action-btn cancel" @click="handleCancel(res.id)">取消预约</text>
-                <text v-else-if="res.status === 'approved'" class="action-btn cancel" @click="handleCancel(res.id)">取消预约</text>
-                <text v-else class="action-btn view">查看详情</text>
-              </view>
-            </view>
+        </view>
+        <view class="info-item" @click="editField('phone')">
+          <text class="info-label">手机号码</text>
+          <view class="info-value-wrap">
+            <text class="info-value">{{ currentUser?.phone || '未设置' }}</text>
+            <text class="info-arrow">›</text>
+          </view>
+        </view>
+        <view class="info-item" @click="editField('email')">
+          <text class="info-label">邮箱地址</text>
+          <view class="info-value-wrap">
+            <text class="info-value">{{ currentUser?.email || '未设置' }}</text>
+            <text class="info-arrow">›</text>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-label">用户角色</text>
+          <view class="info-value-wrap">
+            <text class="info-value">{{ getUserRole(currentUser?.role) }}</text>
           </view>
         </view>
       </view>
     </view>
+
+    <!-- 安全设置 -->
+    <view v-if="isLoggedIn" class="section-card">
+      <view class="section-header">
+        <text class="section-title">🔐 安全设置</text>
+      </view>
+      <view class="setting-list">
+        <view class="setting-item" @click="goToChangePassword">
+          <view class="setting-icon">🔑</view>
+          <text class="setting-text">修改密码</text>
+          <text class="setting-arrow">›</text>
+        </view>
+        <view class="setting-item" @click="goToSecurity">
+          <view class="setting-icon">🛡️</view>
+          <text class="setting-text">账号安全</text>
+          <text class="setting-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view v-if="isLoggedIn" class="section-card">
+      <view class="section-header">
+        <text class="section-title">⚡ 快捷操作</text>
+      </view>
+      <view class="action-grid">
+        <view class="action-item" @click="goToMyReservation">
+          <view class="action-icon-wrap">
+            <text class="action-icon">📅</text>
+          </view>
+          <text class="action-text">我的预约</text>
+        </view>
+        <view class="action-item" @click="goToFavorite">
+          <view class="action-icon-wrap">
+            <text class="action-icon">❤️</text>
+          </view>
+          <text class="action-text">收藏列表</text>
+        </view>
+        <view class="action-item" @click="goToHistory">
+          <view class="action-icon-wrap">
+            <text class="action-icon">📜</text>
+          </view>
+          <text class="action-text">预约历史</text>
+        </view>
+        <view class="action-item" @click="goToFeedback">
+          <view class="action-icon-wrap">
+            <text class="action-icon">💬</text>
+          </view>
+          <text class="action-text">意见反馈</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 系统信息 -->
+    <view v-if="isLoggedIn" class="section-card">
+      <view class="setting-list">
+        <view class="setting-item" @click="goToAbout">
+          <view class="setting-icon">ℹ️</view>
+          <text class="setting-text">关于系统</text>
+          <text class="setting-arrow">›</text>
+        </view>
+        <view class="setting-item logout" @click="handleLogout">
+          <view class="setting-icon">🚪</view>
+          <text class="setting-text">退出登录</text>
+          <text class="setting-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 未登录状态 -->
+    <view v-if="!isLoggedIn" class="guest-section">
+      <view class="guest-card" @click="goToLogin">
+        <view class="guest-icon">👤</view>
+        <text class="guest-text">登录后可使用完整功能</text>
+        <text class="guest-arrow">›</text>
+      </view>
+      <view class="guest-card" @click="goToRegister">
+        <view class="guest-icon">📝</view>
+        <text class="guest-text">注册新账号</text>
+        <text class="guest-arrow">›</text>
+      </view>
+    </view>
+    
+    <!-- 自定义底部导航 -->
+    <CustomTabbar current="profile" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import CustomTabbar from '@/components/custom-tabbar/CustomTabbar.vue'
 import { useUserStore } from '@/stores/user'
-import { useReservationStore } from '@/stores/reservation'
 
 const userStore = useUserStore()
-const reservationStore = useReservationStore()
-
-const activeMenu = ref('profile')
-const activeReservationTab = ref('all')
 
 const currentUser = computed(() => userStore.currentUser)
-const reservations = computed(() => reservationStore.reservations)
-const myReservations = computed(() => reservations.value.filter(r => r.applicant === currentUser.value?.realName))
+const isLoggedIn = computed(() => userStore.isLoggedIn())
+const isCertified = computed(() => userStore.isCertified())
 
-const menuItems = computed(() => [
-  { key: 'profile', label: '个人信息', icon: '◎' },
-  { key: 'reservations', label: '我的预约', icon: '◯' }
-])
+function getAvatarText(user: User | null | undefined): string {
+  if (!user) return '?'
+  const name = user.realName || user.username || '?'
+  return name.charAt(0).toUpperCase()
+}
 
-const reservationTabs = computed(() => [
-  { key: 'all', label: '全部', count: myReservations.value.length },
-  { key: 'pending', label: '待审核', count: myReservations.value.filter(r => r.status === 'pending').length },
-  { key: 'approved', label: '已通过', count: myReservations.value.filter(r => r.status === 'approved').length },
-  { key: 'completed', label: '已完成', count: myReservations.value.filter(r => r.status === 'completed').length }
-])
-
-const currentPageTitle = computed(() => {
-  const map: Record<string, string> = {
-    profile: '个人中心',
-    reservations: '我的预约'
-  }
-  return map[activeMenu.value] || '个人中心'
-})
-
-const filteredReservations = computed(() => {
-  if (activeReservationTab.value === 'all') return myReservations.value
-  return myReservations.value.filter(r => r.status === activeReservationTab.value)
-})
-
-function getRoleText(role?: string): string {
-  const map: Record<string, string> = {
+function getUserRole(role?: string): string {
+  const roleMap: Record<string, string> = {
     admin: '管理员',
     teacher: '教师',
     student: '学生',
     organization: '组织'
   }
-  return map[role || ''] || ''
+  return roleMap[role || ''] || '普通用户'
 }
 
-function getSchoolIdLabel(role?: string): string {
-  const map: Record<string, string> = {
-    admin: '管理员编号',
-    teacher: '教工号',
-    student: '学号',
-    organization: '组织编号'
-  }
-  return map[role || ''] || '身份编号'
+function goToLogin() {
+  uni.navigateTo({ url: '/pages/user/login' })
 }
 
-function getStatusText(status: string): string {
-  const map: Record<string, string> = {
-    pending: '待审核',
-    approved: '已通过',
-    rejected: '已拒绝',
-    completed: '已完成',
-    cancelled: '已取消'
-  }
-  return map[status] || status
+function goToRegister() {
+  uni.navigateTo({ url: '/pages/user/register' })
 }
 
-function goToEdit() {
-  uni.navigateTo({ url: '/pages/user/edit' })
+function goToCertify() {
+  uni.navigateTo({ url: '/pages/user/certify' })
 }
 
 function goToChangePassword() {
-  uni.showToast({ title: '功能开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages/user/change-password' })
 }
 
-function handleCancel(id: string) {
+function goToSecurity() {
+  uni.navigateTo({ url: '/pages/user/security' })
+}
+
+function goToMyReservation() {
+  uni.switchTab({ url: '/pages/reservation/list' })
+}
+
+function goToFavorite() {
+  uni.navigateTo({ url: '/pages/user/favorite' })
+}
+
+function goToHistory() {
+  uni.switchTab({ url: '/pages/reservation/list' })
+}
+
+function goToFeedback() {
+  uni.navigateTo({ url: '/pages/user/feedback' })
+}
+
+function goToAbout() {
   uni.showModal({
-    title: '确认取消',
-    content: '确定要取消此预约吗？',
+    title: '关于系统',
+    content: '会议室调度系统 v1.0\n\n一款便捷的会议室预约管理系统，支持预约申请、审核管理、资源统计等功能。',
+    showCancel: false
+  })
+}
+
+function changeAvatar() {
+  uni.showActionSheet({
+    itemList: ['拍照', '从相册选择'],
     success: (res) => {
-      if (res.confirm) {
-        reservationStore.cancelReservation(id)
-        uni.showToast({ title: '已取消', icon: 'success' })
+      uni.showToast({ title: '头像修改功能开发中', icon: 'none' })
+    }
+  })
+}
+
+function editField(field: string) {
+  const fieldNames: Record<string, string> = {
+    realName: '真实姓名',
+    username: '用户名',
+    phone: '手机号码',
+    email: '邮箱地址'
+  }
+  uni.showModal({
+    title: `修改${fieldNames[field] || field}`,
+    editable: true,
+    placeholderText: `请输入新的${fieldNames[field] || field}`,
+    success: (res) => {
+      if (res.confirm && res.content) {
+        userStore.updateUserField(field, res.content)
+        uni.showToast({ title: '修改成功', icon: 'success' })
       }
     }
   })
@@ -257,7 +295,10 @@ function handleLogout() {
     success: (res) => {
       if (res.confirm) {
         userStore.logout()
-        uni.redirectTo({ url: '/pages/user/login' })
+        uni.showToast({ title: '退出成功', icon: 'success' })
+        setTimeout(() => {
+          uni.reLaunch({ url: '/pages/user/login' })
+        }, 1500)
       }
     }
   })
@@ -269,459 +310,417 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.profile-container {
-  display: flex;
+@import "@/styles/variables.scss";
+
+.container {
   min-height: 100vh;
-  background: $bg-page;
+  background: $bg-color;
+  padding-bottom: 280rpx;
 }
 
-/* ===== 侧边栏 ===== */
-.sidebar {
-  width: 280rpx;
-  background: #1E293B;
-  color: $white;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  left: 0;
+/* ===== 顶部背景 ===== */
+.profile-bg {
+  position: relative;
+  height: 320rpx;
+  overflow: hidden;
+}
+
+.bg-gradient {
+  position: absolute;
   top: 0;
+  left: 0;
+  right: 0;
   bottom: 0;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #3b82f6 100%);
 }
 
-.sidebar-header {
-  padding: $spacing-xl $spacing-lg;
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-}
-
-.logo-icon {
-  font-size: 40rpx;
-  color: $primary-color;
-}
-
-.logo-text {
-  font-size: $font-lg;
-  font-weight: 700;
-  color: $white;
-}
-
-.sidebar-menu {
-  flex: 1;
-  padding: $spacing-md;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  padding: $spacing-md;
-  border-radius: $radius-lg;
-  margin-bottom: $spacing-xs;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: rgba($primary-color, 0.2);
-  }
-  
-  &.active {
-    background: $primary-color;
-    
-    .menu-icon {
-      color: $white;
-    }
-  }
-}
-
-.menu-icon {
-  font-size: 32rpx;
-  color: rgba(255, 255, 255, 0.6);
-  margin-right: $spacing-sm;
-}
-
-.menu-text {
-  font-size: $font-base;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* ===== 主内容区域 ===== */
-.main-content {
-  flex: 1;
-  margin-left: 280rpx;
-  display: flex;
-  flex-direction: column;
-}
-
-.top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $spacing-lg;
-  background: $bg-card;
-  border-bottom: 1rpx solid $border-light;
-}
-
-.header-left {
-  .page-title {
-    font-size: $font-xl;
-    font-weight: 700;
-    color: $text-title;
-  }
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  background: $bg-page;
-  border: 1rpx solid $border-color;
-  border-radius: $radius-lg;
-  padding: 0 $spacing-md;
-  height: 64rpx;
-  width: 300rpx;
-}
-
-.search-icon {
-  font-size: 28rpx;
-  color: $text-muted;
-  margin-right: $spacing-sm;
-}
-
-.search-input {
-  flex: 1;
-  height: 100%;
-  font-size: $font-sm;
-  background: transparent;
-}
-
-/* ===== 内容区域 ===== */
-.content-area {
-  flex: 1;
-  padding: $spacing-lg;
-  overflow: auto;
-}
-
-/* ===== 个人信息卡片 ===== */
-.profile-section {
-  display: flex;
-  gap: $spacing-lg;
-}
-
+/* ===== 用户信息卡片 ===== */
 .profile-card {
-  flex: 1;
-  background: $bg-card;
-  border-radius: $radius-xl;
-  padding: $spacing-xl;
-  box-shadow: $shadow-sm;
-}
-
-.card-header {
-  display: flex;
-  gap: $spacing-lg;
-  padding-bottom: $spacing-xl;
-  border-bottom: 1rpx solid $border-light;
-}
-
-.user-avatar-wrap {
+  background: #ffffff;
+  border-radius: 24rpx;
+  margin: -160rpx 24rpx 24rpx;
+  padding: 160rpx 32rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
-.user-avatar {
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.avatar {
+  position: relative;
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: $shadow;
+  border: 6rpx solid #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.3);
 }
 
 .avatar-text {
   font-size: 56rpx;
+  color: #ffffff;
   font-weight: 700;
-  color: $white;
 }
 
 .avatar-edit {
   position: absolute;
-  bottom: 8rpx;
-  right: 8rpx;
-  width: 48rpx;
-  height: 48rpx;
+  bottom: -8rpx;
+  right: -8rpx;
+  width: 56rpx;
+  height: 56rpx;
+  background: #ffffff;
   border-radius: 50%;
-  background: $primary-color;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  
-  &:hover {
-    background: $primary-dark;
-  }
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .edit-icon {
-  font-size: 24rpx;
-  color: $white;
+  font-size: 28rpx;
 }
 
 .user-info {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: $spacing-sm;
 }
 
 .user-name {
-  font-size: $font-2xl;
+  font-size: 40rpx;
   font-weight: 700;
-  color: $text-title;
+  color: $text-color;
+  display: block;
+  margin-bottom: 12rpx;
 }
 
-.user-role {
-  font-size: $font-base;
-  color: $text-secondary;
-}
-
-.verify-badge {
+.auth-badge {
   display: inline-flex;
-  align-items: center;
   padding: 8rpx 20rpx;
-  border-radius: $radius-full;
-  font-size: $font-xs;
-  width: fit-content;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  font-weight: 500;
   
-  &.verified {
+  &.certified {
     background: rgba($success-color, 0.1);
     color: $success-color;
   }
   
-  &.unverified {
+  &.uncertified {
     background: rgba($warning-color, 0.1);
     color: $warning-color;
   }
 }
 
-.card-body {
-  padding-top: $spacing-xl;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $spacing-lg;
-}
-
-.info-item {
-  background: $bg-page;
-  padding: $spacing-md;
-  border-radius: $radius-lg;
-}
-
-.info-label {
-  font-size: $font-xs;
-  color: $text-muted;
-  display: block;
-  margin-bottom: $spacing-xs;
-}
-
-.info-value {
-  font-size: $font-base;
-  color: $text-title;
+.login-btn {
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 24rpx;
+  color: #ffffff;
+  font-size: 28rpx;
   font-weight: 500;
 }
 
-/* ===== 操作卡片 ===== */
-.action-cards {
-  width: 400rpx;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.action-card {
+/* ===== 未认证提示 ===== */
+.certification-prompt {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  background: $bg-card;
-  border-radius: $radius-xl;
-  cursor: pointer;
-  box-shadow: $shadow-sm;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: translateX(8rpx);
-    box-shadow: $shadow;
-  }
+  gap: 16rpx;
+  padding: 24rpx;
+  background: rgba(239, 68, 68, 0.08);
+  border: 2rpx solid rgba(239, 68, 68, 0.3);
+  border-radius: 16rpx;
+  margin-top: 16rpx;
 }
 
-.action-icon {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: $radius-lg;
-  background: rgba($primary-color, 0.1);
-  color: $primary-color;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  
-  &.logout {
-    background: rgba($error-color, 0.1);
-    color: $error-color;
-  }
+.prompt-icon {
+  font-size: 40rpx;
+  flex-shrink: 0;
 }
 
-.action-content {
+.prompt-content {
   flex: 1;
 }
 
-.action-title {
-  font-size: $font-base;
+.prompt-title {
+  font-size: 30rpx;
   font-weight: 600;
-  color: $text-title;
+  color: $error-color;
   display: block;
+  margin-bottom: 6rpx;
 }
 
-.action-desc {
-  font-size: $font-xs;
-  color: $text-muted;
-}
-
-.action-arrow {
-  font-size: $font-lg;
-  color: $text-muted;
-}
-
-/* ===== 预约列表 ===== */
-.reservations-section {
-  max-width: 1400rpx;
-}
-
-.tabs {
-  display: flex;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-lg;
-  background: $bg-card;
-  padding: $spacing-xs;
-  border-radius: $radius-xl;
-  width: fit-content;
-}
-
-.tab-item {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-md $spacing-lg;
-  border-radius: $radius-lg;
-  font-size: $font-sm;
+.prompt-desc {
+  font-size: 24rpx;
   color: $text-secondary;
-  cursor: pointer;
-  transition: all 0.2s ease;
+}
+
+.prompt-action {
+  padding: 12rpx 24rpx;
+  background: $error-color;
+  border-radius: 20rpx;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* ===== 区块卡片 ===== */
+.section-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  margin: 0 24rpx 24rpx;
+  padding: 24rpx;
+  box-shadow: $shadow;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid $border-color;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: $text-color;
+}
+
+.section-status {
+  font-size: 26rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 12rpx;
+  background: rgba($warning-color, 0.1);
+  color: $warning-color;
   
-  &.active {
-    background: $primary-color;
-    color: $white;
+  &.completed {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
   }
 }
 
-.tab-badge {
-  min-width: 32rpx;
-  height: 32rpx;
-  padding: 0 8rpx;
-  border-radius: $radius-full;
-  background: rgba(255,255,255,0.2);
-  font-size: $font-xs;
+/* ===== 认证信息 ===== */
+.certify-info {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.certify-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 36rpx;
 }
 
-.reservation-table {
-  background: $bg-card;
-  border-radius: $radius-xl;
-  overflow: hidden;
-  box-shadow: $shadow-sm;
+.certify-detail {
+  flex: 1;
 }
 
-.table-header {
-  display: flex;
-  background: $bg-hover;
-  padding: $spacing-md;
+.certify-title {
+  font-size: 30rpx;
   font-weight: 600;
-  font-size: $font-sm;
+  color: $text-color;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.certify-desc {
+  font-size: 24rpx;
   color: $text-secondary;
 }
 
-.table-row {
+.certify-arrow {
+  font-size: 40rpx;
+  color: $text-light;
+}
+
+/* ===== 信息列表 ===== */
+.info-list {
   display: flex;
-  padding: $spacing-md;
-  border-bottom: 1rpx solid $border-light;
+  flex-direction: column;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #f1f5f9;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.info-label {
+  font-size: 30rpx;
+  color: $text-secondary;
+}
+
+.info-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.info-value {
+  font-size: 30rpx;
+  color: $text-color;
+  font-weight: 500;
+}
+
+.info-arrow {
+  font-size: 36rpx;
+  color: $text-light;
+}
+
+/* ===== 设置列表 ===== */
+.setting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx 0;
+  border-bottom: 2rpx solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
   
   &:last-child {
     border-bottom: none;
   }
   
   &:hover {
-    background: $bg-page;
+    background: #fafafa;
+  }
+  
+  &.logout {
+    .setting-text {
+      color: $error-color;
+    }
   }
 }
 
-.th, .td {
-  flex: 1;
-  text-align: center;
-  font-size: $font-sm;
+.setting-icon {
+  font-size: 36rpx;
 }
 
-.th:first-child, .td:first-child { flex: 1.2; }
-.th:last-child, .td:last-child { flex: 1; }
+.setting-text {
+  flex: 1;
+  font-size: 32rpx;
+  color: $text-color;
+}
 
-.td {
-  color: $text-primary;
+.setting-arrow {
+  font-size: 40rpx;
+  color: $text-light;
+}
+
+/* ===== 快捷操作 ===== */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #f1f5f9;
+    transform: translateY(-4rpx);
+  }
+}
+
+.action-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  &.status-cell {
-    padding: 8rpx 20rpx;
-    border-radius: $radius-full;
-    font-size: $font-xs;
-    font-weight: 500;
-    
-    &.pending { background: rgba($warning-color, 0.1); color: $warning-color; }
-    &.approved { background: rgba($success-color, 0.1); color: $success-color; }
-    &.rejected, &.cancelled { background: rgba($error-color, 0.1); color: $error-color; }
-    &.completed { background: $bg-hover; color: $text-muted; }
-  }
+  margin-bottom: 12rpx;
 }
 
-.actions {
+.action-icon {
+  font-size: 36rpx;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: $text-color;
+}
+
+/* ===== 未登录状态 ===== */
+.guest-section {
+  padding: 32rpx 24rpx;
+}
+
+.guest-card {
   display: flex;
-  justify-content: center;
-  gap: $spacing-sm;
-}
-
-.action-btn {
-  padding: 8rpx 20rpx;
-  border-radius: $radius-md;
-  font-size: $font-xs;
+  align-items: center;
+  gap: 20rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  box-shadow: $shadow;
   cursor: pointer;
   
-  &.cancel { background: rgba($warning-color, 0.1); color: $warning-color; }
-  &.view { background: rgba($primary-color, 0.1); color: $primary-color; }
-  
-  &:hover {
-    opacity: 0.8;
+  &:active {
+    opacity: 0.7;
   }
+}
+
+.guest-icon {
+  font-size: 48rpx;
+}
+
+.guest-text {
+  flex: 1;
+  font-size: 32rpx;
+  color: $text-color;
+}
+
+.guest-arrow {
+  font-size: 40rpx;
+  color: $text-light;
 }
 </style>

@@ -1,5 +1,13 @@
 <template>
   <view class="container">
+    <!-- 返回按钮 -->
+    <view class="back-header">
+      <view class="back-btn" @click="goBack">
+        <text class="back-icon">←</text>
+        <text class="back-text">返回</text>
+      </view>
+    </view>
+    
     <view v-if="!isLoggedIn" class="not-login">
       <text class="not-login-text">请先登录</text>
       <view class="btn-primary mt-30" @click="goToLogin">立即登录</view>
@@ -102,6 +110,10 @@ const selectedRoom = computed(() => {
   return roomStore.getRoomById(form.roomId)
 })
 
+function goBack() {
+  uni.navigateBack()
+}
+
 function onRoomChange(e: any) {
   const index = e.detail.value
   form.roomId = availableRooms.value[index]?.id || ''
@@ -182,15 +194,10 @@ function handleSubmit() {
     status: 'pending'
   })
 
-  uni.showModal({
-    title: '✅ 预约成功',
-    content: `您已成功提交预约申请！\n\n会议室：${room?.name}\n日期：${form.date}\n时间：${form.startTime} - ${form.endTime}`,
-    showCancel: false,
-    confirmText: '知道了',
-    success: () => {
-      uni.navigateBack()
-    }
-  })
+  uni.showToast({ title: '预约申请已提交', icon: 'success' })
+  setTimeout(() => {
+    uni.navigateBack()
+  }, 1500)
 }
 
 function addToQueue() {
@@ -204,15 +211,10 @@ function addToQueue() {
     applicant: userStore.currentUser!.realName
   })
 
-  uni.showModal({
-    title: '⏳ 已加入等待队列',
-    content: `当前会议室已被预约，您已加入等待队列。\n\n日期：${form.date}\n时间：${form.startTime} - ${form.endTime}\n\n当有会议室空出时，系统会优先为您安排。`,
-    showCancel: false,
-    confirmText: '知道了',
-    success: () => {
-      uni.navigateBack()
-    }
-  })
+  uni.showToast({ title: '已加入等待队列', icon: 'success' })
+  setTimeout(() => {
+    uni.navigateBack()
+  }, 1500)
 }
 
 function goToLogin() {
@@ -237,6 +239,37 @@ onMounted(() => {
 .container {
   min-height: 100vh;
   padding: 20rpx;
+}
+
+.back-header {
+  margin-bottom: 20rpx;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 24rpx;
+  cursor: pointer;
+  width: fit-content;
+  
+  &:active {
+    background: rgba(59, 130, 246, 0.2);
+  }
+}
+
+.back-icon {
+  font-size: 36rpx;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.back-text {
+  font-size: 30rpx;
+  color: #3b82f6;
+  font-weight: 500;
 }
 
 .form-card {

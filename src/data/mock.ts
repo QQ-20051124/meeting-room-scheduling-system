@@ -9,6 +9,9 @@ export const mockUsers: User[] = [
     role: 'admin',
     phone: '13800138000',
     email: 'admin@example.com',
+    avatar: '#2563EB',
+    schoolId: 'ADMIN001',
+    isVerified: true,
     createdAt: '2024-01-01'
   },
   {
@@ -20,6 +23,9 @@ export const mockUsers: User[] = [
     phone: '13800138001',
     email: 'zhangsan@example.com',
     department: '计算机学院',
+    avatar: '#10B981',
+    schoolId: '2021001001',
+    isVerified: true,
     createdAt: '2024-01-02'
   },
   {
@@ -31,6 +37,9 @@ export const mockUsers: User[] = [
     phone: '13800138002',
     email: 'lisi@example.com',
     department: '软件学院',
+    avatar: '#F59E0B',
+    schoolId: '2021002002',
+    isVerified: true,
     createdAt: '2024-01-03'
   },
   {
@@ -42,6 +51,9 @@ export const mockUsers: User[] = [
     phone: '13800138003',
     email: 'wang@example.com',
     department: '计算机学院',
+    avatar: '#8B5CF6',
+    schoolId: 'TEA001',
+    isVerified: true,
     createdAt: '2024-01-04'
   },
   {
@@ -53,6 +65,9 @@ export const mockUsers: User[] = [
     phone: '13800138004',
     email: 'liu@example.com',
     department: '数学学院',
+    avatar: '#06B6D4',
+    schoolId: 'TEA002',
+    isVerified: true,
     createdAt: '2024-01-05'
   },
   {
@@ -64,6 +79,9 @@ export const mockUsers: User[] = [
     phone: '13800138005',
     email: 'union@example.com',
     department: '学生会',
+    avatar: '#EF4444',
+    schoolId: 'ORG001',
+    isVerified: true,
     createdAt: '2024-01-06'
   },
   {
@@ -75,6 +93,9 @@ export const mockUsers: User[] = [
     phone: '13800138006',
     email: 'tech@example.com',
     department: '社团联合会',
+    avatar: '#EC4899',
+    schoolId: 'ORG002',
+    isVerified: true,
     createdAt: '2024-01-07'
   }
 ]

@@ -74,14 +74,14 @@
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "black",
+    "navigationBarTextStyle": "white",
     "navigationBarTitleText": "会议室调度系统",
-    "navigationBarBackgroundColor": "#4A90D9",
-    "backgroundColor": "#f5f5f5"
+    "navigationBarBackgroundColor": "#1E3A5F",
+    "backgroundColor": "#F8F9FA"
   },
   "tabBar": {
-    "color": "#8a8a8a",
-    "selectedColor": "#4A90D9",
+    "color": "#808080",
+    "selectedColor": "#1E3A5F",
     "borderStyle": "black",
     "backgroundColor": "#ffffff",
     "list": [

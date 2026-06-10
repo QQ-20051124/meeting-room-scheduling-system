@@ -182,10 +182,15 @@ function handleSubmit() {
     status: 'pending'
   })
 
-  uni.showToast({ title: '预约申请已提交', icon: 'success' })
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 1500)
+  uni.showModal({
+    title: '✅ 预约成功',
+    content: `您已成功提交预约申请！\n\n会议室：${room?.name}\n日期：${form.date}\n时间：${form.startTime} - ${form.endTime}`,
+    showCancel: false,
+    confirmText: '知道了',
+    success: () => {
+      uni.navigateBack()
+    }
+  })
 }
 
 function addToQueue() {
@@ -199,10 +204,15 @@ function addToQueue() {
     applicant: userStore.currentUser!.realName
   })
 
-  uni.showToast({ title: '已加入等待队列', icon: 'success' })
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 1500)
+  uni.showModal({
+    title: '⏳ 已加入等待队列',
+    content: `当前会议室已被预约，您已加入等待队列。\n\n日期：${form.date}\n时间：${form.startTime} - ${form.endTime}\n\n当有会议室空出时，系统会优先为您安排。`,
+    showCancel: false,
+    confirmText: '知道了',
+    success: () => {
+      uni.navigateBack()
+    }
+  })
 }
 
 function goToLogin() {

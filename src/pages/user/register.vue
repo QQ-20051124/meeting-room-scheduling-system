@@ -79,7 +79,7 @@
         </picker>
       </view>
 
-      <view class="form-item" v-if="selectedRole !== 'admin'">
+      <view class="form-item">
         <text class="form-label">院系/部门</text>
         <input 
           class="form-input" 
@@ -87,6 +87,19 @@
           placeholder="请输入院系或部门"
           type="text"
         />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">{{ getSchoolIdLabel() }}
+          <text class="required">*</text>
+        </text>
+        <input 
+          class="form-input" 
+          v-model="schoolId" 
+          :placeholder="getSchoolIdPlaceholder()"
+          type="text"
+        />
+        <text class="field-tip">{{ getSchoolIdTip() }}</text>
       </view>
 
       <view class="btn-primary" @click="handleRegister">注册</view>
@@ -111,6 +124,7 @@ const realName = ref('')
 const phone = ref('')
 const email = ref('')
 const department = ref('')
+const schoolId = ref('')
 const roleIndex = ref(0)
 const selectedRole = ref<'student' | 'teacher' | 'organization'>('student')
 
@@ -123,6 +137,33 @@ const roleOptions = [
 function onRoleChange(e: any) {
   roleIndex.value = e.detail.value
   selectedRole.value = roleOptions[roleIndex.value].value as 'student' | 'teacher' | 'organization'
+}
+
+function getSchoolIdLabel(): string {
+  const map: Record<string, string> = {
+    student: '学号',
+    teacher: '教工号',
+    organization: '组织编号'
+  }
+  return map[selectedRole.value] || '身份编号'
+}
+
+function getSchoolIdPlaceholder(): string {
+  const map: Record<string, string> = {
+    student: '请输入学号',
+    teacher: '请输入教工号',
+    organization: '请输入组织编号'
+  }
+  return map[selectedRole.value] || '请输入身份编号'
+}
+
+function getSchoolIdTip(): string {
+  const map: Record<string, string> = {
+    student: '学号为您的学生注册号',
+    teacher: '教工号由学校人事部门分配',
+    organization: '组织编号由社团联合会分配'
+  }
+  return map[selectedRole.value] || '请填写您的身份编号'
 }
 
 function handleRegister() {
@@ -142,6 +183,10 @@ function handleRegister() {
     uni.showToast({ title: '请输入真实姓名', icon: 'none' })
     return
   }
+  if (!schoolId.value.trim()) {
+    uni.showToast({ title: `请输入${getSchoolIdLabel()}`, icon: 'none' })
+    return
+  }
 
   const success = userStore.register({
     username: username.value,
@@ -150,7 +195,9 @@ function handleRegister() {
     role: selectedRole.value,
     phone: phone.value,
     email: email.value,
-    department: department.value
+    department: department.value,
+    schoolId: schoolId.value,
+    isVerified: true
   })
 
   if (success) {
@@ -221,8 +268,19 @@ function goToLogin() {
 }
 
 .picker-display {
-  padding: 20rpx 0;
-  font-size: 28rpx;
-  color: $text-color;
+  padding: $spacing-sm 0;
+  font-size: $font-base;
+  color: $text-primary;
+}
+
+.required {
+  color: $error-color;
+}
+
+.field-tip {
+  font-size: $font-xs;
+  color: $text-muted;
+  margin-top: $spacing-xs;
+  display: block;
 }
 </style>

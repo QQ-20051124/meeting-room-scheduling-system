@@ -7,6 +7,10 @@ export interface User {
   phone: string
   email: string
   department?: string // 院系/部门
+  avatar?: string // 头像URL或颜色
+  schoolId?: string // 学号/教工号
+  idCard?: string // 身份证号（加密存储）
+  isVerified: boolean // 是否已实名验证
   createdAt: string
 }
 

@@ -3,9 +3,10 @@ export interface User {
   username: string
   password: string
   realName: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'teacher' | 'student' | 'organization'
   phone: string
   email: string
+  department?: string // 院系/部门
   createdAt: string
 }
 
@@ -33,6 +34,9 @@ export interface Reservation {
   participantCount: number
   applicant: string
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
+  hasConflict?: boolean // 是否有冲突
+  conflictReason?: string // 冲突原因
+  notified?: boolean // 是否已通知
   createdAt: string
 }
 

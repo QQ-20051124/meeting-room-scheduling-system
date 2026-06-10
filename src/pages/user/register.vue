@@ -66,6 +66,29 @@
         />
       </view>
 
+      <view class="form-item">
+        <text class="form-label">用户类型</text>
+        <picker 
+          class="form-select"
+          :range="roleOptions" 
+          range-key="label"
+          @change="onRoleChange"
+          :value="roleIndex"
+        >
+          <view class="picker-display">{{ roleOptions[roleIndex].label }}</view>
+        </picker>
+      </view>
+
+      <view class="form-item" v-if="selectedRole !== 'admin'">
+        <text class="form-label">院系/部门</text>
+        <input 
+          class="form-input" 
+          v-model="department" 
+          placeholder="请输入院系或部门"
+          type="text"
+        />
+      </view>
+
       <view class="btn-primary" @click="handleRegister">注册</view>
 
       <view class="login-link">
@@ -87,6 +110,20 @@ const confirmPassword = ref('')
 const realName = ref('')
 const phone = ref('')
 const email = ref('')
+const department = ref('')
+const roleIndex = ref(0)
+const selectedRole = ref<'student' | 'teacher' | 'organization'>('student')
+
+const roleOptions = [
+  { label: '👨‍🎓 学生', value: 'student' },
+  { label: '👨‍ 教师', value: 'teacher' },
+  { label: '🏢 组织/社团', value: 'organization' }
+]
+
+function onRoleChange(e: any) {
+  roleIndex.value = e.detail.value
+  selectedRole.value = roleOptions[roleIndex.value].value as 'student' | 'teacher' | 'organization'
+}
 
 function handleRegister() {
   if (!username.value.trim()) {
@@ -110,9 +147,10 @@ function handleRegister() {
     username: username.value,
     password: password.value,
     realName: realName.value,
-    role: 'user',
+    role: selectedRole.value,
     phone: phone.value,
-    email: email.value
+    email: email.value,
+    department: department.value
   })
 
   if (success) {
@@ -135,31 +173,35 @@ function goToLogin() {
   min-height: 100vh;
   padding: 40rpx 30rpx;
   padding-bottom: 100rpx;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
 }
 
 .register-card {
   width: 100%;
   background: $white;
-  border-radius: $radius;
-  box-shadow: $shadow;
-  padding: 40rpx;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  padding: 50rpx 40rpx;
 }
 
 .register-header {
   text-align: center;
-  margin-bottom: 40rpx;
+  margin-bottom: 50rpx;
 }
 
 .register-title {
   display: block;
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: bold;
-  color: $text-color;
-  margin-bottom: 10rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16rpx;
 }
 
 .register-sub {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: $text-light;
 }
 
@@ -167,13 +209,20 @@ function goToLogin() {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 30rpx;
-  font-size: 26rpx;
+  margin-top: 40rpx;
+  font-size: 28rpx;
   color: $text-secondary;
 }
 
 .link {
   color: $primary-color;
+  font-weight: 600;
   margin-left: 10rpx;
+}
+
+.picker-display {
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: $text-color;
 }
 </style>

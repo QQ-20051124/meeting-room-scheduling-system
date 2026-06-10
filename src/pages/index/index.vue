@@ -16,8 +16,13 @@
 
     <view v-else class="main-section">
       <view class="greeting">
-        <text class="greeting-text">欢迎, {{ currentUser?.realName }}</text>
-        <text class="greeting-role">{{ currentUser?.role === 'admin' ? '管理员' : '普通用户' }}</text>
+        <text class="greeting-text">欢迎，{{ currentUser?.realName }}</text>
+        <view class="role-badges">
+          <text v-if="currentUser?.role === 'admin'" class="role-badge admin">👨‍💼 管理员</text>
+          <text v-else-if="currentUser?.role === 'teacher'" class="role-badge teacher">👨‍🏫 教师</text>
+          <text v-else-if="currentUser?.role === 'student'" class="role-badge student"> 学生</text>
+          <text v-else-if="currentUser?.role === 'organization'" class="role-badge org">️ 组织</text>
+        </view>
       </view>
 
       <view class="quick-actions">
@@ -157,26 +162,54 @@ onMounted(() => {
 
 .greeting {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 40rpx;
-  padding: 30rpx;
-  background: $white;
-  border-radius: $radius;
+  padding: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-float;
 }
 
 .greeting-text {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: bold;
-  color: $text-color;
+  color: $white;
+  margin-bottom: 16rpx;
 }
 
-.greeting-role {
-  font-size: 24rpx;
-  color: $primary-color;
-  background: rgba($primary-color, 0.1);
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
+.role-badges {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 24rpx;
+  border-radius: $radius-full;
+  font-size: 26rpx;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  
+  &.admin {
+    color: #764ba2;
+  }
+  
+  &.teacher {
+    color: #0ba360;
+  }
+  
+  &.student {
+    color: #4facfe;
+  }
+  
+  &.org {
+    color: #f093fb;
+  }
 }
 
 .quick-actions {
@@ -188,15 +221,29 @@ onMounted(() => {
 
 .action-card {
   background: $white;
-  border-radius: $radius;
-  padding: 30rpx;
+  border-radius: $radius-lg;
+  padding: 40rpx 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-shadow: $shadow;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4rpx;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+  }
   
   &:active {
-    opacity: 0.8;
+    transform: translateY(-8rpx);
+    box-shadow: $shadow-lg;
   }
 }
 

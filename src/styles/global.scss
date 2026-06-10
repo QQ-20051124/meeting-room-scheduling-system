@@ -1,106 +1,181 @@
 page {
-  background-color: $bg-color;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(180deg, #F3F4F6 0%, #E5E7EB 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   font-size: 28rpx;
   color: $text-color;
+  min-height: 100vh;
 }
 
 .container {
-  padding: 20rpx;
+  padding: $spacing-md;
 }
 
+// 卡片样式（带渐变和悬浮效果）
 .card {
-  background: $white;
-  border-radius: $radius;
+  background: $bg-card;
+  border-radius: $radius-lg;
   box-shadow: $shadow;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6rpx;
+    background: $gradient-primary;
+  }
+  
+  &:active {
+    transform: translateY(-4rpx);
+    box-shadow: $shadow-lg;
+  }
 }
 
+// 按钮样式（渐变效果）
 .btn-primary {
-  background: $primary-color;
+  background: $gradient-primary;
   color: $white;
   border: none;
-  border-radius: $radius;
-  padding: 24rpx 48rpx;
-  font-size: 28rpx;
+  border-radius: $radius-full;
+  padding: $spacing-md $spacing-xl;
+  font-size: 30rpx;
+  font-weight: 600;
   text-align: center;
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  
   &:active {
-    background: $primary-dark;
+    transform: scale(0.96);
+    box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.2);
+  }
+}
+
+.btn-success {
+  background: $gradient-success;
+  color: $white;
+  border: none;
+  border-radius: $radius-full;
+  padding: $spacing-md $spacing-xl;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8rpx 20rpx rgba(11, 163, 96, 0.3);
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: scale(0.96);
   }
 }
 
 .btn-secondary {
   background: $white;
   color: $primary-color;
-  border: 2rpx solid $primary-color;
-  border-radius: $radius;
-  padding: 24rpx 48rpx;
-  font-size: 28rpx;
+  border: 3rpx solid $primary-color;
+  border-radius: $radius-full;
+  padding: $spacing-md $spacing-xl;
+  font-size: 30rpx;
+  font-weight: 600;
   text-align: center;
+  transition: all 0.3s ease;
+  
   &:active {
     background: rgba($primary-color, 0.1);
   }
 }
 
 .btn-danger {
-  background: $error-color;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: $white;
   border: none;
-  border-radius: $radius;
-  padding: 24rpx 48rpx;
-  font-size: 28rpx;
+  border-radius: $radius-full;
+  padding: $spacing-md $spacing-xl;
+  font-size: 30rpx;
+  font-weight: 600;
   text-align: center;
+  box-shadow: 0 8rpx 20rpx rgba(239, 68, 68, 0.3);
+  transition: all 0.3s ease;
+  
   &:active {
-    background: darken($error-color, 10%);
+    transform: scale(0.96);
   }
 }
 
+.btn-sm {
+  padding: $spacing-sm $spacing-md;
+  font-size: 26rpx;
+}
+
+// 表单样式
 .form-item {
-  margin-bottom: 30rpx;
+  margin-bottom: $spacing-lg;
   
   .form-label {
     display: block;
     font-size: 28rpx;
-    color: $text-secondary;
-    margin-bottom: 12rpx;
+    font-weight: 600;
+    color: $text-color;
+    margin-bottom: $spacing-sm;
+    padding-left: $spacing-xs;
+    border-left: 4rpx solid $primary-color;
   }
   
   .form-input {
     width: 100%;
-    height: 80rpx;
+    height: 88rpx;
     border: 2rpx solid $border-color;
     border-radius: $radius;
-    padding: 0 20rpx;
+    padding: 0 $spacing-md;
     font-size: 28rpx;
+    background: $white;
     box-sizing: border-box;
+    transition: all 0.3s ease;
     
     &:focus {
       border-color: $primary-color;
+      box-shadow: 0 0 0 4rpx rgba(91, 143, 249, 0.1);
     }
   }
   
   .form-textarea {
     width: 100%;
-    height: 160rpx;
+    height: 200rpx;
     border: 2rpx solid $border-color;
     border-radius: $radius;
-    padding: 20rpx;
+    padding: $spacing-md;
     font-size: 28rpx;
+    background: $white;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+    
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 4rpx rgba(91, 143, 249, 0.1);
+    }
   }
   
   .form-select {
     width: 100%;
-    height: 80rpx;
+    height: 88rpx;
     border: 2rpx solid $border-color;
     border-radius: $radius;
-    padding: 0 20rpx;
+    padding: 0 $spacing-md;
     font-size: 28rpx;
     background: $white;
+    transition: all 0.3s ease;
+    
+    &:focus {
+      border-color: $primary-color;
+    }
   }
 }
 
+// 布局工具类
 .flex {
   display: flex;
 }
@@ -121,12 +196,41 @@ page {
   justify-content: space-between;
 }
 
+.justify-around {
+  justify-content: space-around;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .flex-1 {
   flex: 1;
 }
 
+.gap-10 {
+  gap: 10rpx;
+}
+
+.gap-20 {
+  gap: 20rpx;
+}
+
+.gap-30 {
+  gap: 30rpx;
+}
+
+// 文本样式
 .text-center {
   text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .text-primary {
@@ -145,23 +249,197 @@ page {
   color: $error-color;
 }
 
-.mt-20 {
-  margin-top: 20rpx;
+.text-light {
+  color: $text-light;
 }
 
-.mt-30 {
-  margin-top: 30rpx;
+.text-bold {
+  font-weight: 600;
 }
 
-.mb-20 {
-  margin-bottom: 20rpx;
+.text-sm {
+  font-size: 24rpx;
 }
 
-.mb-30 {
-  margin-bottom: 30rpx;
+.text-lg {
+  font-size: 32rpx;
 }
 
+.text-xl {
+  font-size: 40rpx;
+}
+
+// 间距
+.mt-10 { margin-top: 10rpx; }
+.mt-20 { margin-top: 20rpx; }
+.mt-30 { margin-top: 30rpx; }
+.mt-40 { margin-top: 40rpx; }
+
+.mb-10 { margin-bottom: 10rpx; }
+.mb-20 { margin-bottom: 20rpx; }
+.mb-30 { margin-bottom: 30rpx; }
+.mb-40 { margin-bottom: 40rpx; }
+
+.ml-10 { margin-left: 10rpx; }
+.ml-20 { margin-left: 20rpx; }
+
+.mr-10 { margin-right: 10rpx; }
+.mr-20 { margin-right: 20rpx; }
+
+.p-20 { padding: 20rpx; }
+.p-30 { padding: 30rpx; }
+
+// 徽章样式
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-full;
+  font-size: 24rpx;
+  font-weight: 600;
+  
+  &-primary {
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+  
+  &-success {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+  
+  &-warning {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+  
+  &-error {
+    background: rgba($error-color, 0.1);
+    color: $error-color;
+  }
+}
+
+// 标签样式
+.tag {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  border-radius: $radius;
+  font-size: 24rpx;
+  background: linear-gradient(135deg, rgba($primary-color, 0.1), rgba($primary-light, 0.1));
+  color: $primary-color;
+  margin-right: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+// 分割线
+.divider {
+  height: 1rpx;
+  background: linear-gradient(to right, transparent, $border-color, transparent);
+  margin: $spacing-lg 0;
+}
+
+// 安全区域
 .safe-area-bottom {
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+// 动画效果
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+// 通知样式
+.notification {
+  position: fixed;
+  top: 100rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $white;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  z-index: 9999;
+  min-width: 400rpx;
+  text-align: center;
+  
+  &-success {
+    border-left: 6rpx solid $success-color;
+  }
+  
+  &-error {
+    border-left: 6rpx solid $error-color;
+  }
+  
+  &-warning {
+    border-left: 6rpx solid $warning-color;
+  }
+}
+
+// 加载样式
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+  
+  &-spinner {
+    width: 48rpx;
+    height: 48rpx;
+    border: 4rpx solid rgba($primary-color, 0.1);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2;
+  color: $text-light;
+  
+  &-icon {
+    font-size: 120rpx;
+    margin-bottom: $spacing-md;
+    opacity: 0.3;
+  }
+  
+  &-text {
+    font-size: 28rpx;
+  }
 }

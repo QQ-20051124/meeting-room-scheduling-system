@@ -16,9 +16,10 @@ export const mockUsers: User[] = [
     username: 'student001',
     password: '123456',
     realName: '张三',
-    role: 'user',
+    role: 'student',
     phone: '13800138001',
     email: 'zhangsan@example.com',
+    department: '计算机学院',
     createdAt: '2024-01-02'
   },
   {
@@ -26,10 +27,55 @@ export const mockUsers: User[] = [
     username: 'student002',
     password: '123456',
     realName: '李四',
-    role: 'user',
+    role: 'student',
     phone: '13800138002',
     email: 'lisi@example.com',
+    department: '软件学院',
     createdAt: '2024-01-03'
+  },
+  {
+    id: '4',
+    username: 'teacher001',
+    password: '123456',
+    realName: '王教授',
+    role: 'teacher',
+    phone: '13800138003',
+    email: 'wang@example.com',
+    department: '计算机学院',
+    createdAt: '2024-01-04'
+  },
+  {
+    id: '5',
+    username: 'teacher002',
+    password: '123456',
+    realName: '刘教授',
+    role: 'teacher',
+    phone: '13800138004',
+    email: 'liu@example.com',
+    department: '数学学院',
+    createdAt: '2024-01-05'
+  },
+  {
+    id: '6',
+    username: 'org001',
+    password: '123456',
+    realName: '学生会',
+    role: 'organization',
+    phone: '13800138005',
+    email: 'union@example.com',
+    department: '学生会',
+    createdAt: '2024-01-06'
+  },
+  {
+    id: '7',
+    username: 'org002',
+    password: '123456',
+    realName: '科技创新社',
+    role: 'organization',
+    phone: '13800138006',
+    email: 'tech@example.com',
+    department: '社团联合会',
+    createdAt: '2024-01-07'
   }
 ]
 

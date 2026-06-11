@@ -38,6 +38,22 @@ export function isValidTimeRange(startTime: string, endTime: string): boolean {
   return isTimeBefore(startTime, endTime)
 }
 
+export function isPastTime(date: string, time: string): boolean {
+  const now = new Date()
+  const today = formatDate(now)
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  
+  if (isBefore(date, today)) {
+    return true
+  }
+  
+  if (date === today && isTimeBefore(time, currentTime)) {
+    return true
+  }
+  
+  return false
+}
+
 export function generateTimeSlots(): string[] {
   const slots: string[] = []
   for (let h = 8; h <= 21; h++) {

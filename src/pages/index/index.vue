@@ -103,8 +103,8 @@
               <view class="card-header">
                 <view class="card-title-row">
                   <text class="room-title">{{ selectedRoom.name }}</text>
-                  <view :class="['status-tag', selectedRoom.status]">
-                    {{ selectedRoom.status === 'available' ? '可预约' : '占用中' }}
+                  <view :class="['status-tag', getRoomStatus(selectedRoom).class]">
+                    {{ getRoomStatus(selectedRoom).text }}
                   </view>
                 </view>
                 <text class="room-code-text">编号：{{ selectedRoom.code }}</text>
@@ -197,7 +197,12 @@
               
               <view class="form-actions">
                 <view class="btn btn-secondary" @click="resetForm">重置</view>
-                <view class="btn btn-primary" @click="submitReservation">立即预约</view>
+                <view 
+                  :class="['btn btn-primary', { disabled: getRoomStatus(selectedRoom).class !== 'available' }]" 
+                  @click="submitReservation"
+                >
+                  {{ getRoomStatus(selectedRoom).class === 'available' ? '立即预约' : '暂不可预约' }}
+                </view>
               </view>
             </view>
           </view>
@@ -298,7 +303,7 @@ import { useUserStore } from '@/stores/user'
 import { useRoomStore } from '@/stores/room'
 import CustomTabbar from '@/components/custom-tabbar/CustomTabbar.vue'
 import { useReservationStore } from '@/stores/reservation'
-import { getToday } from '@/utils/date'
+import { getToday, isPastTime } from '@/utils/date'
 import type { Room, User } from '@/types'
 
 const userStore = useUserStore()
@@ -519,10 +524,23 @@ function submitReservation() {
     uni.showToast({ title: '请选择会议室', icon: 'none' })
     return
   }
+  
+  const roomStatus = getRoomStatus(selectedRoom.value)
+  if (roomStatus.class !== 'available') {
+    uni.showToast({ title: roomStatus.text === '占用' ? '该会议室当前已被占用' : '该会议室暂不可预约', icon: 'none' })
+    return
+  }
+  
   if (!reservationForm.value.startTime || !reservationForm.value.endTime) {
     uni.showToast({ title: '请选择时间', icon: 'none' })
     return
   }
+  
+  if (isPastTime(reservationForm.value.date, reservationForm.value.startTime)) {
+    uni.showToast({ title: '不能预约过去的时间', icon: 'none' })
+    return
+  }
+  
   if (!reservationForm.value.reason.trim()) {
     uni.showToast({ title: '请输入预约事由', icon: 'none' })
     return
@@ -997,9 +1015,17 @@ onMounted(() => {
     background: rgba(82, 196, 26, 0.1);
     color: $success-color;
   }
-  &.occupied, &.maintenance, &.unavailable {
+  &.occupied {
     background: rgba(239, 68, 68, 0.1);
     color: $error-color;
+  }
+  &.maintenance {
+    background: rgba(250, 173, 20, 0.1);
+    color: $warning-color;
+  }
+  &.unavailable {
+    background: rgba(148, 163, 184, 0.1);
+    color: $text-secondary;
   }
 }
 
@@ -1138,6 +1164,12 @@ onMounted(() => {
 .btn-primary {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #ffffff;
+  
+  &.disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 
 /* ===== 空状态 ===== */

@@ -52,7 +52,7 @@ page {
   font-size: 28rpx;
   text-align: center;
   &:active {
-    background: darken($error-color, 10%);
+    background: #cc0a0a;
   }
 }
 

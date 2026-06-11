@@ -80,7 +80,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoomStore } from '@/stores/room'
 import { useReservationStore } from '@/stores/reservation'
 import { useUserStore } from '@/stores/user'
-import { getToday, isValidTimeRange } from '@/utils/date'
+import { getToday, isValidTimeRange, isPastTime } from '@/utils/date'
 
 const roomStore = useRoomStore()
 const reservationStore = useReservationStore()
@@ -150,6 +150,11 @@ function handleSubmit() {
   }
   if (!isValidTimeRange(form.startTime, form.endTime)) {
     uni.showToast({ title: '结束时间必须晚于开始时间', icon: 'none' })
+    return
+  }
+  
+  if (isPastTime(form.date, form.startTime)) {
+    uni.showToast({ title: '不能预约过去的时间', icon: 'none' })
     return
   }
   if (!form.meetingTopic.trim()) {

@@ -9,6 +9,7 @@
     {
       "path": "pages/user/login",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "用户登录"
       }
     },
@@ -16,6 +17,20 @@
       "path": "pages/user/register",
       "style": {
         "navigationBarTitleText": "用户注册"
+      }
+    },
+    {
+      "path": "pages/user/forgot-password",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "忘记密码"
+      }
+    },
+    {
+      "path": "pages/user/notification",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "消息通知"
       }
     },
     {

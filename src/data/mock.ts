@@ -15,38 +15,14 @@ export const mockUsers: User[] = [
   },
   {
     id: '2',
-    username: 'student001',
+    username: 'user',
     password: '123456',
-    realName: '张三',
+    realName: '普通用户',
     role: 'student',
     phone: '13800138001',
-    email: 'zhangsan@example.com',
+    email: 'user@example.com',
     createdAt: '2024-01-02',
     schoolId: '2021001001',
-    isCertified: true
-  },
-  {
-    id: '3',
-    username: 'student002',
-    password: '123456',
-    realName: '李四',
-    role: 'student',
-    phone: '13800138002',
-    email: 'lisi@example.com',
-    createdAt: '2024-01-03',
-    schoolId: '2021001002',
-    isCertified: true
-  },
-  {
-    id: '4',
-    username: 'teacher001',
-    password: '123456',
-    realName: '王老师',
-    role: 'teacher',
-    phone: '13800138003',
-    email: 'wanglaoshi@example.com',
-    createdAt: '2024-01-04',
-    schoolId: 'T001',
     isCertified: true
   }
 ]

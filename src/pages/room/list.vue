@@ -44,7 +44,7 @@
       >
         <view class="card-header">
           <view class="room-code">{{ room.code }}</view>
-          <view :class="['room-status', room.status]">{{ getStatusText(room.status) }}</view>
+          <view :class="['room-status', getStatusClass(room)]">{{ getStatusText(room) }}</view>
         </view>
         <text class="room-name">{{ room.name }}</text>
         <view class="room-info">
@@ -82,30 +82,62 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoomStore } from '@/stores/room'
 import { useUserStore } from '@/stores/user'
+import { useReservationStore } from '@/stores/reservation'
 import CustomTabbar from '@/components/custom-tabbar/CustomTabbar.vue'
 
 const roomStore = useRoomStore()
 const userStore = useUserStore()
+const reservationStore = useReservationStore()
 const searchKeyword = ref('')
 const activeFilter = ref('all')
 
 const isLoggedIn = computed(() => userStore.isLoggedIn())
 const isAdmin = computed(() => userStore.isAdmin())
 
-const filterTabs = computed(() => [
-  { key: 'all', label: '全部', count: roomStore.rooms.length },
-  { key: 'available', label: '可用', count: roomStore.rooms.filter(r => r.status === 'available').length },
-  { key: 'occupied', label: '占用', count: roomStore.rooms.filter(r => r.status !== 'available').length }
-])
+function isRoomCurrentlyOccupied(roomId: string): boolean {
+  const today = new Date().toISOString().split('T')[0]
+  
+  const reservations = reservationStore.reservations
+  return reservations.some(r => {
+    if (r.roomId !== roomId) return false
+    if (r.date !== today) return false
+    if (r.status !== 'approved') return false
+    return true
+  })
+}
+
+const filterTabs = computed(() => {
+  const availableCount = roomStore.rooms.filter(r => {
+    if (r.status !== 'available') return false
+    return !isRoomCurrentlyOccupied(r.id)
+  }).length
+  
+  const occupiedCount = roomStore.rooms.filter(r => {
+    if (r.status !== 'available') return true
+    return isRoomCurrentlyOccupied(r.id)
+  }).length
+  
+  return [
+    { key: 'all', label: '全部', count: roomStore.rooms.length },
+    { key: 'available', label: '可用', count: availableCount },
+    { key: 'occupied', label: '占用', count: occupiedCount }
+  ]
+})
 
 const filteredRooms = computed(() => {
   let rooms = roomStore.rooms
   
-  // 状态筛选
+  // 状态筛选 - 根据实际预约情况动态判断
   if (activeFilter.value === 'available') {
-    rooms = rooms.filter(r => r.status === 'available')
+    rooms = rooms.filter(r => {
+      if (r.status !== 'available') return false
+      return !isRoomCurrentlyOccupied(r.id)
+    })
   } else if (activeFilter.value === 'occupied') {
-    rooms = rooms.filter(r => r.status !== 'available')
+    rooms = rooms.filter(r => {
+      if (r.status !== 'available') return true
+      return isRoomCurrentlyOccupied(r.id)
+    })
   }
   
   // 关键词搜索
@@ -119,13 +151,26 @@ const filteredRooms = computed(() => {
   )
 })
 
-function getStatusText(status: string): string {
-  const map: Record<string, string> = {
-    available: '可预约',
-    unavailable: '不可用',
-    maintenance: '维护中'
+function getStatusText(room: any): string {
+  if (room.status === 'unavailable') return '不可用'
+  if (room.status === 'maintenance') return '维护中'
+  
+  // 检查当前是否被占用
+  if (isRoomCurrentlyOccupied(room.id)) {
+    return '占用中'
   }
-  return map[status] || status
+  return '可预约'
+}
+
+function getStatusClass(room: any): string {
+  if (room.status === 'unavailable') return 'unavailable'
+  if (room.status === 'maintenance') return 'maintenance'
+  
+  // 检查当前是否被占用
+  if (isRoomCurrentlyOccupied(room.id)) {
+    return 'occupied'
+  }
+  return 'available'
 }
 
 function goToAddRoom() {
@@ -328,6 +373,10 @@ onMounted(() => {
     background: rgba($success-color, 0.1);
     color: $success-color;
   }
+  &.unoccupied {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+  }
   &.unavailable {
     background: rgba($error-color, 0.1);
     color: $error-color;
@@ -335,6 +384,10 @@ onMounted(() => {
   &.maintenance {
     background: rgba($warning-color, 0.1);
     color: $warning-color;
+  }
+  &.occupied {
+    background: rgba($error-color, 0.1);
+    color: $error-color;
   }
 }
 

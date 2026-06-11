@@ -29,9 +29,7 @@ export const useUserStore = defineStore('user', () => {
     const newUser: User = {
       ...user,
       id: String(Date.now()),
-      createdAt: new Date().toISOString().split('T')[0],
-      schoolId: '',
-      isCertified: false
+      createdAt: new Date().toISOString().split('T')[0]
     }
     mockUsers.push(newUser)
     currentUser.value = newUser

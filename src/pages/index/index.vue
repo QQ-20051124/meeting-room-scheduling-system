@@ -49,7 +49,7 @@
           <text class="sidebar-count">共 {{ roomStore.rooms.length }} 间</text>
         </view>
         
-        <!-- 筛选标签 - 横向排列 -->
+        <!-- 筛选标签 - 垂直排列 -->
         <view class="sidebar-filter">
           <view 
             v-for="tab in filterTabs" 
@@ -70,8 +70,8 @@
             @click="selectRoom(room)"
           >
             <view class="room-item-header">
-              <view :class="['room-status', room.status]">
-                <text>{{ room.status === 'available' ? '可用' : '占用' }}</text>
+              <view :class="['room-status', getRoomStatus(room).class]">
+                <text>{{ getRoomStatus(room).text }}</text>
               </view>
               <text class="room-code">{{ room.code }}</text>
             </view>
@@ -339,17 +339,60 @@ const isLoggedIn = computed(() => userStore.isLoggedIn())
 const isAdmin = computed(() => userStore.isAdmin())
 const currentUser = computed(() => userStore.currentUser)
 
+function isRoomOccupied(roomId: string): boolean {
+  const today = getToday()
+  return reservationStore.reservations.some(r => {
+    if (r.roomId !== roomId) return false
+    if (r.date !== today) return false
+    if (r.status !== 'approved') return false
+    return true
+  })
+}
+
+function getRoomStatus(room: Room): { text: string; class: string } {
+  if (room.status === 'unavailable') {
+    return { text: '不可用', class: 'unavailable' }
+  }
+  if (room.status === 'maintenance') {
+    return { text: '维护中', class: 'maintenance' }
+  }
+  if (isRoomOccupied(room.id)) {
+    return { text: '占用', class: 'occupied' }
+  }
+  return { text: '可用', class: 'available' }
+}
+
 const filteredRooms = computed(() => {
   let rooms = roomStore.rooms
   
   if (activeFilter.value === 'available') {
-    rooms = rooms.filter(r => r.status === 'available')
+    rooms = rooms.filter(r => {
+      if (r.status !== 'available') return false
+      return !isRoomOccupied(r.id)
+    })
   } else if (activeFilter.value === 'occupied') {
-    rooms = rooms.filter(r => r.status !== 'available')
+    rooms = rooms.filter(r => {
+      if (r.status !== 'available') return true
+      return isRoomOccupied(r.id)
+    })
   }
   
   return rooms
 })
+
+function getFilterCount(key: string): number {
+  if (key === 'all') return roomStore.rooms.length
+  if (key === 'available') {
+    return roomStore.rooms.filter(r => {
+      if (r.status !== 'available') return false
+      return !isRoomOccupied(r.id)
+    }).length
+  }
+  return roomStore.rooms.filter(r => {
+    if (r.status !== 'available') return true
+    return isRoomOccupied(r.id)
+  }).length
+}
 
 const todaySchedule = computed(() => {
   if (!currentUser.value) return []
@@ -377,12 +420,6 @@ function getAvatarText(user: User | null | undefined): string {
   if (!user) return '?'
   const name = user.realName || user.username || '?'
   return name.charAt(0).toUpperCase()
-}
-
-function getFilterCount(key: string): number {
-  if (key === 'all') return roomStore.rooms.length
-  if (key === 'available') return roomStore.rooms.filter(r => r.status === 'available').length
-  return roomStore.rooms.filter(r => r.status !== 'available').length
 }
 
 function getEquipmentCount(equipment: string): number {
@@ -424,7 +461,7 @@ function goToProfile() {
 }
 
 function goToNotification() {
-  uni.showToast({ title: '暂无新通知', icon: 'none' })
+  uni.navigateTo({ url: '/pages/user/notification' })
 }
 
 function goToReservationList() {
@@ -751,8 +788,9 @@ onMounted(() => {
 
 .sidebar-filter {
   display: flex;
-  padding: 24rpx 28rpx;
-  gap: 16rpx;
+  flex-direction: column;
+  padding: 16rpx 24rpx;
+  gap: 12rpx;
   border-bottom: 2rpx solid $border-color;
   background: #fafafa;
 }
@@ -760,27 +798,28 @@ onMounted(() => {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 16rpx 32rpx;
-  border-radius: 28rpx;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  border-radius: 12rpx;
   font-size: 28rpx;
   color: #64748b;
   background: #ffffff;
-  border: 2rpx solid #e2e8f0;
+  border: 2rpx solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   
   &:hover {
-    border-color: #cbd5e1;
+    background: #f1f5f9;
   }
   
   &.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: rgba(59, 130, 246, 0.08);
     border-color: #3b82f6;
-    color: #ffffff;
+    color: #3b82f6;
     
     .filter-count {
-      background: rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #ffffff;
     }
   }
 }
@@ -791,9 +830,11 @@ onMounted(() => {
 
 .filter-count {
   font-size: 24rpx;
-  padding: 4rpx 12rpx;
+  padding: 4rpx 16rpx;
   background: #e2e8f0;
   border-radius: 12rpx;
+  min-width: 32rpx;
+  text-align: center;
 }
 
 .room-list {
@@ -839,7 +880,15 @@ onMounted(() => {
     background: rgba(82, 196, 26, 0.1);
     color: $success-color;
   }
-  &.maintenance, &.unavailable {
+  &.occupied {
+    background: rgba(239, 68, 68, 0.1);
+    color: $error-color;
+  }
+  &.maintenance {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+  &.unavailable {
     background: rgba(239, 68, 68, 0.1);
     color: $error-color;
   }

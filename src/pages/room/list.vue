@@ -61,7 +61,7 @@
           <text class="equipment-icon">📦</text>
           <text class="equipment-text">{{ room.equipment }}</text>
         </view>
-        <view v-if="isLoggedIn && room.status === 'available'" class="room-action">
+        <view v-if="isLoggedIn && room.status === 'available' && !isRoomCurrentlyOccupied(room.id)" class="room-action">
           <view class="btn-primary" @click.stop="goToApply(room.id)">立即预约</view>
         </view>
       </view>
@@ -445,19 +445,24 @@ onMounted(() => {
 }
 
 .room-action {
+  padding-top: 16rpx;
+  border-top: 2rpx solid $border-color;
+  margin-top: 8rpx;
+  
   .btn-primary {
     width: 100%;
-    height: 72rpx;
+    height: 64rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #ffffff;
     border-radius: 12rpx;
-    font-size: 28rpx;
+    font-size: 26rpx;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-sizing: border-box;
     
     &:hover {
       opacity: 0.9;

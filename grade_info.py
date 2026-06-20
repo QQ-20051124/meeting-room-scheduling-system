@@ -2,591 +2,617 @@
 # -*- coding: utf-8 -*-
 """
 多功能学生信息管理系统 - 成绩管理模块
-负责：成绩信息录入、展示、修改、删除功能
-
-功能概述：
-- 录入学生成绩（学号、姓名、语文、数学、英语、物理、化学）
-- 使用表格展示所有成绩信息，包含总分和平均分
-- 支持按学号修改、删除成绩信息
-- 数据校验（非空、学号唯一、成绩范围0-100）
-- 自动计算总分和平均分
-
-成绩信息数据结构（字典）：
-{
-    "学号": "2024001",
-    "姓名": "张三",
-    "语文": 85,
-    "数学": 92,
-    "英语": 88,
-    "物理": 90,
-    "化学": 86,
-    "总分": 441,
-    "平均分": 88.2
-}
 """
 
-# 导入Tkinter库
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 
+def get_grade_level(score):
+    """根据平均分评定等级"""
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    elif score >= 70:
+        return "C"
+    elif score >= 60:
+        return "D"
+    else:
+        return "E"
+
+
+def calculate_ranks(grade_data):
+    """计算所有学生的排名（按总分降序）"""
+    if not grade_data:
+        return grade_data
+    sorted_data = sorted(grade_data, key=lambda x: x.get("总分", 0), reverse=True)
+    for i, item in enumerate(sorted_data, start=1):
+        item["排名"] = i
+    return sorted_data
+
+
 class GradeInfoPage(ttk.Frame):
-    """
-    成绩信息管理页面类，继承自ttk.Frame
-    
-    功能：
-        1. 提供成绩信息录入表单
-        2. 使用Treeview表格展示成绩信息（含总分和平均分）
-        3. 支持添加、修改、删除成绩信息
-        4. 数据校验和异常处理
-        5. 自动计算总分和平均分
-    
-    属性：
-        app: 主应用程序引用，用于访问全局数据
-        edit_mode: 布尔值，表示当前是否处于编辑模式
-        selected_grade: 当前选中的成绩记录（字典）
-        stu_id_entry: 学号输入框
-        name_entry: 姓名输入框
-        chinese_entry: 语文成绩输入框
-        math_entry: 数学成绩输入框
-        english_entry: 英语成绩输入框
-        physics_entry: 物理成绩输入框
-        chemistry_entry: 化学成绩输入框
-        grade_table: Treeview表格控件
-        add_btn: 添加按钮
-    """
-    
+    """成绩信息管理页面类"""
+
     def __init__(self, parent, app):
-        """
-        初始化成绩信息管理页面
-        
-        参数：
-            parent: 父容器（Frame）
-            app: 主应用程序引用
-        """
-        # 调用父类构造函数
         super().__init__(parent)
-        
-        # 保存主应用引用（用于访问全局数据）
         self.app = app
-        
-        # 初始化编辑模式为False（默认是添加模式）
         self.edit_mode = False
-        
-        # 当前选中的成绩记录（None表示未选中）
         self.selected_grade = None
+        self.sort_column = "学号"
+        self.sort_order = "asc"
         
-        # 创建页面控件
+        # 创建自定义样式
+        self.style = ttk.Style()
+        self.setup_styles()
+        
         self.create_widgets()
-        
-        # 初始化测试数据（首次运行时填充示例数据）
         self.init_test_data()
-    
+
+    def setup_styles(self):
+        """设置自定义样式"""
+        # 表格样式
+        self.style.configure(
+            "Grade.Treeview",
+            font=("微软雅黑", 11),
+            rowheight=26,
+            background="#ffffff",
+            fieldbackground="#ffffff"
+        )
+        
+        # 选中行样式
+        self.style.map(
+            "Grade.Treeview",
+            background=[('selected', '#e8f0fe')],
+            foreground=[('selected', '#2c5282')]
+        )
+
     def init_test_data(self):
-        """
-        初始化测试数据（如果数据为空）
-        当全局成绩数据列表为空时，填充5条示例数据
-        """
-        # 检查是否已有数据
+        """初始化测试数据"""
         if not self.app.grade_data:
-            # 示例成绩数据（字典列表）
             self.app.grade_data = [
-                {"学号": "2024001", "姓名": "张三", "语文": 85, "数学": 92, "英语": 88, "物理": 90, "化学": 86},
-                {"学号": "2024002", "姓名": "李四", "语文": 90, "数学": 88, "英语": 95, "物理": 87, "化学": 91},
-                {"学号": "2024003", "姓名": "王五", "语文": 82, "数学": 85, "英语": 80, "物理": 88, "化学": 84},
-                {"学号": "2024004", "姓名": "赵六", "语文": 95, "数学": 98, "英语": 92, "物理": 94, "化学": 96},
-                {"学号": "2024005", "姓名": "钱七", "语文": 78, "数学": 80, "英语": 85, "物理": 82, "化学": 79},
+                {"学号": "2024001", "姓名": "张三", "语文": 85, "数学": 92, "英语": 88},
+                {"学号": "2024002", "姓名": "李四", "语文": 90, "数学": 88, "英语": 95},
+                {"学号": "2024003", "姓名": "王五", "语文": 82, "数学": 85, "英语": 80},
+                {"学号": "2024004", "姓名": "赵六", "语文": 95, "数学": 98, "英语": 92},
+                {"学号": "2024005", "姓名": "钱七", "语文": 78, "数学": 80, "英语": 85},
             ]
-            # 更新表格显示
-            self.update_grade_table()
-    
+            for grade in self.app.grade_data:
+                grade["总分"] = grade["语文"] + grade["数学"] + grade["英语"]
+                grade["平均分"] = round(grade["总分"] / 3, 2)
+                grade["等级"] = get_grade_level(grade["平均分"])
+            calculate_ranks(self.app.grade_data)
+        self.update_grade_table()
+
     def create_widgets(self):
-        """
-        创建页面控件
-        布局结构：
-        - 页面标题
-        - 主容器（分为左侧输入区域和右侧表格区域）
-          - 左侧：输入表单卡片（学号、姓名、语文、数学、英语、物理、化学）+ 操作按钮
-          - 右侧：表格卡片展示成绩信息（含总分和平均分）
-        """
-        # ========== 页面标题 ==========
-        title_label = ttk.Label(self, text="成绩管理", style="Title.TLabel")
-        title_label.pack(pady=(20, 10))
-        
-        # ========== 主容器 ==========
-        main_container = ttk.Frame(self)
-        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-        
-        # ========== 左侧：输入区域（卡片式布局）==========
-        left_frame = ttk.Frame(main_container, width=320)
-        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 15))
+        """创建页面控件"""
+        # 页面标题区域
+        title_frame = tk.Frame(self, bg="#4a6fa5", padx=35, pady=22)
+        title_frame.pack(fill=tk.X)
+        title_label = tk.Label(title_frame, text="成绩管理", 
+                              font=("微软雅黑", 24, "bold"), 
+                              fg="white", bg="#4a6fa5")
+        title_label.pack(anchor=tk.W)
+
+        # 主容器
+        main_container = tk.Frame(self, bg="#f5f7fa", padx=20, pady=20)
+        main_container.pack(fill=tk.BOTH, expand=True)
+
+        # 左侧：输入区域
+        left_frame = tk.Frame(main_container, width=320, bg="#f5f7fa")
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 20))
         left_frame.pack_propagate(False)
-        
-        # 卡片容器
-        card_frame = ttk.Frame(left_frame, style="Card.TFrame")
-        card_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
+
+        # 输入卡片
+        input_card = tk.Frame(left_frame, bg="#ffffff", relief="solid", borderwidth=1)
+        input_card.pack(fill=tk.BOTH, expand=True)
+        input_card.config(borderwidth=1, relief="solid", highlightbackground="#d8e0e8", highlightthickness=1)
+
         # 输入区域标题
-        input_title = ttk.Label(card_frame, text="成绩信息录入", style="Header.TLabel")
-        input_title.pack(pady=(15, 10), anchor=tk.W, padx=15)
+        input_title = tk.Label(input_card, text="成绩信息录入", 
+                              font=("微软雅黑", 15, "bold"), 
+                              fg="#3d4f5f", bg="#ffffff", pady=15, padx=22)
+        input_title.pack(fill=tk.X, anchor=tk.W)
+
+        # 学号输入
+        self.create_input_row(input_card, "学号", "stu_id_entry")
         
-        # ---------- 学号输入 ----------
-        ttk.Label(card_frame, text="学号:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.stu_id_entry = ttk.Entry(card_frame)
-        self.stu_id_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        # 姓名输入
+        self.create_input_row(input_card, "姓名", "name_entry")
         
-        # ---------- 姓名输入 ----------
-        ttk.Label(card_frame, text="姓名:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.name_entry = ttk.Entry(card_frame)
-        self.name_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        # 语文成绩
+        self.create_input_row(input_card, "语文", "chinese_entry")
         
-        # ---------- 语文成绩输入 ----------
-        ttk.Label(card_frame, text="语文:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.chinese_entry = ttk.Entry(card_frame)
-        self.chinese_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        # 数学成绩
+        self.create_input_row(input_card, "数学", "math_entry")
         
-        # ---------- 数学成绩输入 ----------
-        ttk.Label(card_frame, text="数学:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.math_entry = ttk.Entry(card_frame)
-        self.math_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        # 英语成绩
+        self.create_input_row(input_card, "英语", "english_entry")
+
+        # 操作按钮区域
+        button_frame1 = tk.Frame(input_card, bg="#ffffff", padx=22)
+        button_frame1.pack(fill=tk.X, pady=(0, 12))
         
-        # ---------- 英语成绩输入 ----------
-        ttk.Label(card_frame, text="英语:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.english_entry = ttk.Entry(card_frame)
-        self.english_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        self.add_btn = self.create_button(button_frame1, "+ 添加", "#5a7fc2", self.add_grade)
+        self.add_btn.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
         
-        # ---------- 物理成绩输入 ----------
-        ttk.Label(card_frame, text="物理:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.physics_entry = ttk.Entry(card_frame)
-        self.physics_entry.pack(fill=tk.X, padx=15, pady=(0, 8))
+        self.modify_btn = self.create_button(button_frame1, "✏ 修改", "#6b9e6b", self.modify_grade)
+        self.modify_btn.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
         
-        # ---------- 化学成绩输入 ----------
-        ttk.Label(card_frame, text="化学:", style="Normal.TLabel").pack(anchor=tk.W, padx=15)
-        self.chemistry_entry = ttk.Entry(card_frame)
-        self.chemistry_entry.pack(fill=tk.X, padx=15, pady=(0, 15))
+        self.delete_btn = self.create_button(button_frame1, "✕ 删除", "#c46060", self.delete_grade)
+        self.delete_btn.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
+
+        # 功能按钮区域
+        button_frame2 = tk.Frame(input_card, bg="#ffffff", padx=22)
+        button_frame2.pack(fill=tk.X, pady=(0, 20))
         
-        # ---------- 按钮区域 ----------
-        button_frame = tk.Frame(card_frame)
-        button_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        self.reset_btn = self.create_button(button_frame2, "↺ 重置", "#8a9aab", self.reset_form)
+        self.reset_btn.pack(fill=tk.X, pady=(0, 10))
         
-        # 添加按钮 - 深蓝色专业风格
-        self.add_btn = tk.Button(
-            button_frame, 
-            text="+ 添加", 
-            command=self.add_grade,
-            font=("微软雅黑", 12, "bold"),
-            foreground="white",
-            background="#4a69bd",
-            activebackground="#3d5a99",
-            activeforeground="white",
-            relief="flat",
-            borderwidth=0,
-            padx=15,
-            pady=8,
-            cursor="hand2"
-        )
-        self.add_btn.pack(side=tk.LEFT, padx=3, fill=tk.X, expand=True)
+        self.report_btn = self.create_button(button_frame2, "📄 个人成绩单", "#8b7fc2", self.show_personal_report)
+        self.report_btn.pack(fill=tk.X, pady=(0, 10))
         
-        # 修改按钮 - 深绿色专业风格
-        self.modify_btn = tk.Button(
-            button_frame, 
-            text="✏ 修改", 
-            command=self.modify_grade,
-            font=("微软雅黑", 12, "bold"),
-            foreground="white",
-            background="#2ecc71",
-            activebackground="#27ae60",
-            activeforeground="white",
-            relief="flat",
-            borderwidth=0,
-            padx=15,
-            pady=8,
-            cursor="hand2"
-        )
-        self.modify_btn.pack(side=tk.LEFT, padx=3, fill=tk.X, expand=True)
-        
-        # 删除按钮 - 深红色专业风格
-        self.delete_btn = tk.Button(
-            button_frame, 
-            text="✕ 删除", 
-            command=self.delete_grade,
-            font=("微软雅黑", 12, "bold"),
-            foreground="white",
-            background="#e74c3c",
-            activebackground="#c0392b",
-            activeforeground="white",
-            relief="flat",
-            borderwidth=0,
-            padx=15,
-            pady=8,
-            cursor="hand2"
-        )
-        self.delete_btn.pack(side=tk.LEFT, padx=3, fill=tk.X, expand=True)
-        
-        # 重置按钮 - 灰色专业风格
-        self.reset_btn = tk.Button(
-            card_frame, 
-            text="↺ 重置", 
-            command=self.reset_form,
-            font=("微软雅黑", 12, "bold"),
-            foreground="#5d6d7e",
-            background="#ecf0f1",
-            activebackground="#bdc3c7",
-            activeforeground="#2c3e50",
-            relief="flat",
-            borderwidth=1,
-            padx=15,
-            pady=8,
-            cursor="hand2"
-        )
-        self.reset_btn.pack(fill=tk.X, padx=15, pady=(0, 15))
-        
-        # ========== 右侧：表格展示区域（卡片式布局）==========
-        right_frame = ttk.Frame(main_container)
+        self.summary_btn = self.create_button(button_frame2, "📊 班级成绩汇总", "#c2a060", self.show_class_summary)
+        self.summary_btn.pack(fill=tk.X)
+
+        # 右侧：表格展示区域
+        right_frame = tk.Frame(main_container, bg="#f5f7fa")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        
-        # 表格卡片容器
-        table_card = ttk.Frame(right_frame, style="Card.TFrame")
-        table_card.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # 表格标题
-        table_title = ttk.Label(table_card, text="成绩信息列表", style="Header.TLabel")
-        table_title.pack(pady=(15, 10), anchor=tk.W, padx=15)
-        
-        # 创建滚动条（用于表格内容过多时滚动）
-        scrollbar = ttk.Scrollbar(table_card)
+
+        # 表格卡片
+        table_card = tk.Frame(right_frame, bg="#ffffff", relief="solid", borderwidth=1)
+        table_card.pack(fill=tk.BOTH, expand=True)
+        table_card.config(borderwidth=1, relief="solid", highlightbackground="#d8e0e8", highlightthickness=1)
+
+        table_title = tk.Label(table_card, text="成绩信息列表", 
+                              font=("微软雅黑", 15, "bold"), 
+                              fg="#3d4f5f", bg="#ffffff", pady=15, padx=22)
+        table_title.pack(fill=tk.X, anchor=tk.W)
+
+        # 表格容器
+        table_container = tk.Frame(table_card, bg="#ffffff")
+        table_container.pack(fill=tk.BOTH, expand=True, padx=22, pady=(0, 20))
+
+        scrollbar = ttk.Scrollbar(table_container)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # 创建Treeview表格
+
+        columns = ["学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级"]
+        col_widths = {
+            "学号": 85,
+            "姓名": 75,
+            "语文": 65,
+            "数学": 65,
+            "英语": 65,
+            "总分": 65,
+            "平均分": 75,
+            "排名": 55,
+            "等级": 55
+        }
+
+        # 使用标准的 Treeview 表格
         self.grade_table = ttk.Treeview(
-            table_card, 
-            columns=("学号", "姓名", "语文", "数学", "英语", "物理", "化学", "总分", "平均分"),
+            table_container,
+            columns=columns,
             show="headings",
-            yscrollcommand=scrollbar.set
+            yscrollcommand=scrollbar.set,
+            height=12,
+            style="Grade.Treeview"
         )
-        
-        # 设置列标题
-        columns = ["学号", "姓名", "语文", "数学", "英语", "物理", "化学", "总分", "平均分"]
+
+        # 设置表头和排序命令
         for col in columns:
-            self.grade_table.heading(col, text=col)
-        
-        # 设置列宽度和对齐方式
-        self.grade_table.column("学号", width=80, anchor=tk.CENTER)
-        self.grade_table.column("姓名", width=80, anchor=tk.CENTER)
-        self.grade_table.column("语文", width=70, anchor=tk.CENTER)
-        self.grade_table.column("数学", width=70, anchor=tk.CENTER)
-        self.grade_table.column("英语", width=70, anchor=tk.CENTER)
-        self.grade_table.column("物理", width=70, anchor=tk.CENTER)
-        self.grade_table.column("化学", width=70, anchor=tk.CENTER)
-        self.grade_table.column("总分", width=70, anchor=tk.CENTER)
-        self.grade_table.column("平均分", width=80, anchor=tk.CENTER)
-        
-        # 绑定双击事件（双击表格行进入编辑模式）
+            self.grade_table.heading(col, text=col, command=lambda c=col: self.sort_by_column(c))
+
+        # 设置列宽
+        for col, width in col_widths.items():
+            self.grade_table.column(col, width=width, anchor=tk.CENTER)
+
+        # 斑马纹样式
+        self.grade_table.tag_configure("even", background="#fafbfc")
+        self.grade_table.tag_configure("odd", background="#ffffff")
+
         self.grade_table.bind("<Double-1>", self.on_table_double_click)
-        
-        # 显示表格
-        self.grade_table.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 15))
-        
-        # 配置滚动条关联表格
+        self.grade_table.pack(fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.grade_table.yview)
-    
+
+    def create_input_row(self, parent, label_text, entry_name):
+        """创建输入行"""
+        row_frame = tk.Frame(parent, bg="#ffffff")
+        row_frame.pack(fill=tk.X, padx=22, pady=(0, 12))
+        
+        label = tk.Label(row_frame, text=f"{label_text}:", font=("微软雅黑", 12), 
+                        fg="#5a6a7a", bg="#ffffff", width=6, anchor=tk.W)
+        label.pack(side=tk.LEFT)
+        
+        entry = tk.Entry(row_frame, font=("微软雅黑", 12), 
+                        bd=1, relief="solid", bg="#ffffff", fg="#3d4f5f",
+                        highlightcolor="#5a7fc2", highlightthickness=1)
+        entry.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(10, 0))
+        
+        setattr(self, entry_name, entry)
+        if entry_name == "stu_id_entry":
+            entry.focus_set()
+
+    def create_button(self, parent, text, bg_color, command):
+        """创建按钮"""
+        btn = tk.Button(parent, text=text, font=("微软雅黑", 11, "bold"),
+                       fg="white", bg=bg_color,
+                       activeforeground="white", activebackground=self.darken_color(bg_color),
+                       relief="flat", bd=0, cursor="hand2",
+                       padx=12, pady=9, command=command)
+        btn.config(highlightthickness=0, borderwidth=0)
+        return btn
+
+    def darken_color(self, color):
+        """使颜色变暗"""
+        color = color.lstrip('#')
+        r = max(0, int(color[0:2], 16) - 25)
+        g = max(0, int(color[2:4], 16) - 25)
+        b = max(0, int(color[4:6], 16) - 25)
+        return f'#{r:02x}{g:02x}{b:02x}'
+
     def validate_input(self):
-        """
-        验证输入数据是否合法
-        
-        校验规则：
-        1. 非空校验：学号、姓名不能为空
-        2. 学号唯一性校验（添加模式下）
-        3. 成绩格式校验：必须是整数
-        4. 成绩范围校验：必须在0-100之间
-        
-        返回值：
-            验证通过：返回包含成绩信息的字典（含总分和平均分）
-            验证失败：返回None
-        """
-        # 获取输入值（使用strip()去除首尾空格）
+        """验证输入数据"""
         stu_id = self.stu_id_entry.get().strip()
         name = self.name_entry.get().strip()
-        
-        # ========== 非空校验 ==========
+
         if not stu_id:
             messagebox.showerror("错误", "学号不能为空！")
             return None
-        
         if not name:
             messagebox.showerror("错误", "姓名不能为空！")
             return None
-        
-        # ========== 学号唯一性校验（添加模式） ==========
+
         if not self.edit_mode:
             for grade in self.app.grade_data:
                 if grade["学号"] == stu_id:
                     messagebox.showerror("错误", "该学号成绩已存在！")
                     return None
-        
-        # ========== 成绩输入校验（转换为整数） ==========
+
         try:
             chinese = int(self.chinese_entry.get().strip())
             math = int(self.math_entry.get().strip())
             english = int(self.english_entry.get().strip())
-            physics = int(self.physics_entry.get().strip())
-            chemistry = int(self.chemistry_entry.get().strip())
         except ValueError:
             messagebox.showerror("错误", "成绩必须是整数！")
             return None
-        
-        # ========== 成绩范围校验（0-100） ==========
-        scores = [chinese, math, english, physics, chemistry]
-        for score in scores:
+
+        for score in [chinese, math, english]:
             if score < 0 or score > 100:
                 messagebox.showerror("错误", "成绩必须在0-100之间！")
                 return None
-        
-        # ========== 计算总分和平均分 ==========
-        total = chinese + math + english + physics + chemistry
-        average = round(total / 5, 2)  # 保留两位小数
-        
-        # 验证通过，返回成绩信息字典
+
+        total = chinese + math + english
+        average = round(total / 3, 2)
+        level = get_grade_level(average)
+
         return {
             "学号": stu_id,
             "姓名": name,
             "语文": chinese,
             "数学": math,
             "英语": english,
-            "物理": physics,
-            "化学": chemistry,
             "总分": total,
-            "平均分": average
+            "平均分": average,
+            "等级": level
         }
-    
+
     def add_grade(self):
-        """
-        添加成绩信息
-        
-        流程：
-        1. 调用validate_input()验证输入
-        2. 将验证通过的数据添加到全局成绩列表
-        3. 更新表格显示
-        4. 重置表单
-        5. 显示成功提示
-        """
-        # 验证输入
+        """添加成绩信息"""
         grade_data = self.validate_input()
         if not grade_data:
-            return  # 验证失败，直接返回
-        
-        # 添加到全局数据列表
+            return
+
         self.app.grade_data.append(grade_data)
-        
-        # 更新表格显示
+        calculate_ranks(self.app.grade_data)
         self.update_grade_table()
-        
-        # 重置表单
         self.reset_form()
-        
-        # 显示成功提示
         messagebox.showinfo("成功", "成绩信息添加成功！")
-    
+
     def modify_grade(self):
-        """
-        修改成绩信息
-        
-        流程：
-        1. 检查是否选中了成绩记录
-        2. 调用validate_input()验证输入
-        3. 查找并更新对应成绩信息
-        4. 更新表格显示
-        5. 重置表单并退出编辑模式
-        6. 显示成功提示
-        """
-        # 检查是否选中了成绩记录
+        """修改成绩信息"""
         if not self.selected_grade:
             messagebox.showwarning("提示", "请先选择要修改的成绩记录！")
             return
-        
-        # 验证输入
+
         grade_data = self.validate_input()
         if not grade_data:
             return
-        
-        # 查找并更新成绩信息（根据学号匹配）
+
         for i, grade in enumerate(self.app.grade_data):
             if grade["学号"] == self.selected_grade["学号"]:
                 self.app.grade_data[i] = grade_data
                 break
-        
-        # 更新表格显示
+
+        calculate_ranks(self.app.grade_data)
         self.update_grade_table()
-        
-        # 重置表单并退出编辑模式
         self.reset_form()
         self.edit_mode = False
-        self.add_btn.config(text="添加")  # 按钮文字改回"添加"
-        
-        # 显示成功提示
+        self.add_btn.config(text="+ 添加")
         messagebox.showinfo("成功", "成绩信息修改成功！")
-    
+
     def delete_grade(self):
-        """
-        删除成绩信息
-        
-        流程：
-        1. 检查是否选中了成绩记录
-        2. 弹出确认对话框
-        3. 从全局列表中删除选中的成绩
-        4. 更新表格显示
-        5. 重置表单
-        6. 显示成功提示
-        """
-        # 检查是否选中了成绩记录
+        """删除成绩信息"""
         if not self.selected_grade:
             messagebox.showwarning("提示", "请先选择要删除的成绩记录！")
             return
-        
-        # 弹出确认对话框
+
         if not messagebox.askyesno(
-            "确认删除", 
+            "确认删除",
             f"确定要删除学生 {self.selected_grade['姓名']} 的成绩吗？"
         ):
-            return  # 用户取消删除
-        
-        # 删除成绩信息（使用列表推导式过滤掉选中的成绩）
+            return
+
         self.app.grade_data = [
-            g for g in self.app.grade_data 
+            g for g in self.app.grade_data
             if g["学号"] != self.selected_grade["学号"]
         ]
-        
-        # 更新表格显示
+
+        calculate_ranks(self.app.grade_data)
         self.update_grade_table()
-        
-        # 重置表单
         self.reset_form()
-        self.selected_grade = None  # 清除选中状态
-        
-        # 显示成功提示
-        messagebox.showinfo("成功", "成绩信息删除成功！")
-    
-    def reset_form(self):
-        """
-        重置表单为初始状态
-        
-        清空所有输入框，恢复默认值，退出编辑模式
-        """
-        # 清空学号输入框
-        self.stu_id_entry.delete(0, tk.END)
-        # 清空姓名输入框
-        self.name_entry.delete(0, tk.END)
-        # 清空语文成绩输入框
-        self.chinese_entry.delete(0, tk.END)
-        # 清空数学成绩输入框
-        self.math_entry.delete(0, tk.END)
-        # 清空英语成绩输入框
-        self.english_entry.delete(0, tk.END)
-        # 清空物理成绩输入框
-        self.physics_entry.delete(0, tk.END)
-        # 清空化学成绩输入框
-        self.chemistry_entry.delete(0, tk.END)
-        # 恢复学号输入框可编辑状态
-        self.stu_id_entry.config(state=tk.NORMAL)
-        # 退出编辑模式
-        self.edit_mode = False
-        # 按钮文字改回"添加"
-        self.add_btn.config(text="添加")
-        # 清除选中状态
         self.selected_grade = None
-    
+        messagebox.showinfo("成功", "成绩信息删除成功！")
+
+    def reset_form(self):
+        """重置表单"""
+        self.stu_id_entry.config(state=tk.NORMAL)
+        self.stu_id_entry.delete(0, tk.END)
+        self.name_entry.delete(0, tk.END)
+        self.chinese_entry.delete(0, tk.END)
+        self.math_entry.delete(0, tk.END)
+        self.english_entry.delete(0, tk.END)
+        self.edit_mode = False
+        self.add_btn.config(text="+ 添加")
+        self.selected_grade = None
+        self.stu_id_entry.focus_set()
+
     def update_grade_table(self):
-        """
-        更新表格显示
-        
-        流程：
-        1. 清空表格所有行
-        2. 遍历全局成绩数据列表
-        3. 计算每条记录的总分和平均分
-        4. 将每条成绩信息插入表格
-        """
-        # 清空表格（删除所有子项）
+        """更新表格显示"""
         for item in self.grade_table.get_children():
             self.grade_table.delete(item)
+
+        sorted_data = self.get_sorted_data()
+        columns = ["学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级"]
         
-        # 重新填充数据
-        for grade in self.app.grade_data:
-            # 计算总分和平均分（兼容可能缺少这些字段的旧数据）
-            total = grade.get("总分", grade["语文"] + grade["数学"] + grade["英语"] + grade["物理"] + grade["化学"])
-            average = round(total / 5, 2)
-            
+        for i, grade in enumerate(sorted_data):
+            total = grade.get("总分", grade["语文"] + grade["数学"] + grade["英语"])
+            average = grade.get("平均分", round(total / 3, 2))
+            rank = grade.get("排名", "-")
+            level = grade.get("等级", get_grade_level(average))
+
+            # 斑马纹标签
+            tag = "even" if i % 2 == 0 else "odd"
+
             self.grade_table.insert(
-                "",  # 父项（空表示顶级）
-                tk.END,  # 插入位置（末尾）
+                "", tk.END,
                 values=(
                     grade["学号"],
                     grade["姓名"],
                     grade["语文"],
                     grade["数学"],
                     grade["英语"],
-                    grade["物理"],
-                    grade["化学"],
                     total,
-                    average
-                )
+                    average,
+                    rank,
+                    level
+                ),
+                tags=(tag,)
             )
-    
+
+    def get_sorted_data(self):
+        """获取排序后的数据"""
+        if not self.app.grade_data:
+            return []
+
+        column = self.sort_column
+        order = self.sort_order
+
+        numeric_columns = ["语文", "数学", "英语", "总分", "平均分", "排名"]
+
+        sorted_data = sorted(
+            self.app.grade_data,
+            key=lambda x: (
+                float(x.get(column, 0)) if column in numeric_columns else str(x.get(column, ""))
+            ),
+            reverse=(order == "desc")
+        )
+
+        return sorted_data
+
+    def sort_by_column(self, column):
+        """按指定列排序，点击同一列切换升序/降序"""
+        if self.sort_column == column:
+            self.sort_order = "desc" if self.sort_order == "asc" else "asc"
+        else:
+            self.sort_column = column
+            self.sort_order = "asc"
+
+        # 更新表头显示排序方向
+        columns = ["学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级"]
+        for col in columns:
+            indicator = ""
+            if col == self.sort_column:
+                indicator = " ↑" if self.sort_order == "asc" else " ↓"
+            self.grade_table.heading(col, text=col + indicator, command=lambda c=col: self.sort_by_column(c))
+
+        # 更新表格显示
+        self.update_grade_table()
+
     def on_table_double_click(self, event):
-        """
-        表格双击事件处理，用于编辑成绩信息
-        
-        流程：
-        1. 获取用户双击的表格行
-        2. 根据学号查找完整的成绩信息
-        3. 将成绩信息填充到表单中
-        4. 设置为编辑模式（学号不可修改）
-        """
-        # 获取选中的行
+        """表格双击事件处理"""
         selected_items = self.grade_table.selection()
         if not selected_items:
-            return  # 没有选中任何行
-        
-        # 获取选中行的项目ID
+            return
+
         item = selected_items[0]
-        # 获取选中行的数据（元组形式）
         values = self.grade_table.item(item, "values")
-        
-        # 根据学号查找完整的成绩信息
+
         for grade in self.app.grade_data:
             if grade["学号"] == values[0]:
                 self.selected_grade = grade
                 break
-        
-        # 将成绩信息填充到表单
-        # 学号（编辑模式下不可修改）
+
         self.stu_id_entry.delete(0, tk.END)
         self.stu_id_entry.insert(0, self.selected_grade["学号"])
-        self.stu_id_entry.config(state=tk.DISABLED)  # 设置为只读
-        
-        # 姓名
+        self.stu_id_entry.config(state=tk.DISABLED)
+
         self.name_entry.delete(0, tk.END)
         self.name_entry.insert(0, self.selected_grade["姓名"])
-        
-        # 语文
+
         self.chinese_entry.delete(0, tk.END)
         self.chinese_entry.insert(0, str(self.selected_grade["语文"]))
-        
-        # 数学
+
         self.math_entry.delete(0, tk.END)
         self.math_entry.insert(0, str(self.selected_grade["数学"]))
-        
-        # 英语
+
         self.english_entry.delete(0, tk.END)
         self.english_entry.insert(0, str(self.selected_grade["英语"]))
-        
-        # 物理
-        self.physics_entry.delete(0, tk.END)
-        self.physics_entry.insert(0, str(self.selected_grade["物理"]))
-        
-        # 化学
-        self.chemistry_entry.delete(0, tk.END)
-        self.chemistry_entry.insert(0, str(self.selected_grade["化学"]))
-        
-        # 设置为编辑模式
+
         self.edit_mode = True
-        self.add_btn.config(text="保存修改")  # 按钮文字改为"保存修改"
+        self.add_btn.config(text="✓ 保存修改")
+
+    def show_personal_report(self):
+        """展示个人成绩单"""
+        stu_id = self.stu_id_entry.get().strip()
+        if not stu_id:
+            messagebox.showwarning("提示", "请在学号输入框中输入要查询的学号！")
+            return
+
+        grade = None
+        for g in self.app.grade_data:
+            if g["学号"] == stu_id:
+                grade = g
+                break
+
+        if not grade:
+            messagebox.showwarning("提示", f"未找到学号为 {stu_id} 的成绩记录！")
+            return
+
+        report_window = tk.Toplevel(self)
+        report_window.title(f"个人成绩单 - {grade['姓名']}")
+        report_window.geometry("420x450")
+        report_window.resizable(False, False)
+        report_window.configure(bg="#f5f7fa")
+        report_window.transient(self)
+        report_window.grab_set()
+
+        tk.Label(
+            report_window, text="个 人 成 绩 单",
+            font=("微软雅黑", 20, "bold"),
+            bg="#5a7fc2", fg="white", pady=18
+        ).pack(fill=tk.X)
+
+        content = tk.Frame(report_window, bg="#f5f7fa", padx=30, pady=25)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        info_items = [
+            ("学号", grade["学号"]),
+            ("姓名", grade["姓名"]),
+            ("语文", str(grade["语文"])),
+            ("数学", str(grade["数学"])),
+            ("英语", str(grade["英语"])),
+            ("总分", str(grade.get("总分", grade["语文"]+grade["数学"]+grade["英语"]))),
+            ("平均分", str(grade.get("平均分", round((grade["语文"]+grade["数学"]+grade["英语"])/3, 2)))),
+            ("排名", str(grade.get("排名", "-"))),
+            ("等级", grade.get("等级", "-")),
+        ]
+
+        for label, value in info_items:
+            row = tk.Frame(content, bg="#f5f7fa")
+            row.pack(fill=tk.X, pady=6)
+            tk.Label(row, text=f"{label}:", font=("微软雅黑", 13, "bold"),
+                     bg="#f5f7fa", fg="#4a5f6f", width=8, anchor=tk.E).pack(side=tk.LEFT)
+            val_label = tk.Label(row, text=value, font=("微软雅黑", 13),
+                     bg="#f5f7fa", fg="#5a6a7a")
+            val_label.pack(side=tk.LEFT, padx=(15, 0))
+
+        tk.Button(
+            report_window, text="关 闭", command=report_window.destroy,
+            font=("微软雅黑", 12, "bold"), foreground="white", background="#5a7fc2",
+            activebackground="#4a6fa5", activeforeground="white",
+            relief="flat", borderwidth=0, padx=40, pady=9, cursor="hand2",
+            border=0, highlightthickness=0
+        ).pack(pady=(0, 20))
+
+    def show_class_summary(self):
+        """展示班级成绩汇总"""
+        if not self.app.grade_data:
+            messagebox.showwarning("提示", "暂无成绩数据！")
+            return
+
+        total_students = len(self.app.grade_data)
+        avg_chinese = round(sum(g["语文"] for g in self.app.grade_data) / total_students, 2)
+        avg_math = round(sum(g["数学"] for g in self.app.grade_data) / total_students, 2)
+        avg_english = round(sum(g["英语"] for g in self.app.grade_data) / total_students, 2)
+        avg_total = round(sum(g.get("总分", 0) for g in self.app.grade_data) / total_students, 2)
+        avg_average = round(avg_total / 3, 2)
+
+        level_counts = {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0}
+        for g in self.app.grade_data:
+            level = g.get("等级", get_grade_level(g.get("平均分", 0)))
+            if level in level_counts:
+                level_counts[level] += 1
+
+        max_total = max(g.get("总分", 0) for g in self.app.grade_data)
+        min_total = min(g.get("总分", 0) for g in self.app.grade_data)
+
+        summary_window = tk.Toplevel(self)
+        summary_window.title("班级成绩汇总")
+        summary_window.geometry("480x550")
+        summary_window.resizable(False, False)
+        summary_window.configure(bg="#f5f7fa")
+        summary_window.transient(self)
+        summary_window.grab_set()
+
+        tk.Label(
+            summary_window, text="班 级 成 绩 汇 总",
+            font=("微软雅黑", 20, "bold"),
+            bg="#c2a060", fg="white", pady=18
+        ).pack(fill=tk.X)
+
+        content = tk.Frame(summary_window, bg="#f5f7fa", padx=30, pady=25)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        summary_items = [
+            ("班级总人数", str(total_students)),
+            ("语文平均分", str(avg_chinese)),
+            ("数学平均分", str(avg_math)),
+            ("英语平均分", str(avg_english)),
+            ("总分平均分", str(avg_total)),
+            ("平均分", str(avg_average)),
+            ("最高分", str(max_total)),
+            ("最低分", str(min_total)),
+        ]
+
+        for label, value in summary_items:
+            row = tk.Frame(content, bg="#f5f7fa")
+            row.pack(fill=tk.X, pady=5)
+            tk.Label(row, text=f"{label}:", font=("微软雅黑", 12, "bold"),
+                     bg="#f5f7fa", fg="#4a5f6f", width=12, anchor=tk.E).pack(side=tk.LEFT)
+            tk.Label(row, text=value, font=("微软雅黑", 12),
+                     bg="#f5f7fa", fg="#5a6a7a").pack(side=tk.LEFT, padx=(15, 0))
+
+        tk.Label(content, text="等级分布:", font=("微软雅黑", 12, "bold"),
+                 bg="#f5f7fa", fg="#4a5f6f").pack(anchor=tk.W, pady=(15, 8))
+
+        level_colors = {"A": "#6b9e6b", "B": "#5a7fc2", "C": "#c2a060", "D": "#c48060", "E": "#c46060"}
+        level_frame = tk.Frame(content, bg="#f5f7fa")
+        level_frame.pack(fill=tk.X)
+        for level in ["A", "B", "C", "D", "E"]:
+            tk.Label(
+                level_frame, text=f"{level}: {level_counts[level]}人",
+                font=("微软雅黑", 11, "bold"),
+                bg=level_colors[level], fg="white",
+                padx=12, pady=5, relief="flat",
+                border=0
+            ).pack(side=tk.LEFT, padx=3)
+
+        tk.Button(
+            summary_window, text="关 闭", command=summary_window.destroy,
+            font=("微软雅黑", 12, "bold"), foreground="white", background="#c2a060",
+            activebackground="#a88850", activeforeground="white",
+            relief="flat", borderwidth=0, padx=40, pady=9, cursor="hand2",
+            border=0, highlightthickness=0
+        ).pack(pady=(0, 20))

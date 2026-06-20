@@ -255,8 +255,8 @@ class QueryInfoPage(ttk.Frame):
         # ---------- 科目选择 ----------
         ttk.Label(self.query_frame, text="科目:", style="Normal.TLabel").pack(side=tk.LEFT, padx=5)
         self.subject_query = ttk.Combobox(
-            self.query_frame, 
-            values=["", "语文", "数学", "英语", "物理", "化学"], 
+            self.query_frame,
+            values=["", "语文", "数学", "英语"],
             width=12
         )
         self.subject_query.current(0)  # 默认选中空（不筛选）
@@ -319,27 +319,27 @@ class QueryInfoPage(ttk.Frame):
     def set_grade_table_columns(self):
         """
         设置成绩信息表格列
-        
-        列定义：学号、姓名、语文、数学、英语、物理、化学、总分、平均分
+
+        列定义：学号、姓名、语文、数学、英语、总分、平均分、排名、等级
         """
         # 设置新列
-        self.result_table["columns"] = ("学号", "姓名", "语文", "数学", "英语", "物理", "化学", "总分", "平均分")
-        
+        self.result_table["columns"] = ("学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级")
+
         # 设置列标题
-        columns = ("学号", "姓名", "语文", "数学", "英语", "物理", "化学", "总分", "平均分")
+        columns = ("学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级")
         for col in columns:
             self.result_table.heading(col, text=col)
-        
+
         # 设置列宽度和对齐方式
         self.result_table.column("学号", width=80, anchor=tk.CENTER)
-        self.result_table.column("姓名", width=80, anchor=tk.CENTER)
-        self.result_table.column("语文", width=70, anchor=tk.CENTER)
-        self.result_table.column("数学", width=70, anchor=tk.CENTER)
-        self.result_table.column("英语", width=70, anchor=tk.CENTER)
-        self.result_table.column("物理", width=70, anchor=tk.CENTER)
-        self.result_table.column("化学", width=70, anchor=tk.CENTER)
-        self.result_table.column("总分", width=70, anchor=tk.CENTER)
-        self.result_table.column("平均分", width=80, anchor=tk.CENTER)
+        self.result_table.column("姓名", width=70, anchor=tk.CENTER)
+        self.result_table.column("语文", width=60, anchor=tk.CENTER)
+        self.result_table.column("数学", width=60, anchor=tk.CENTER)
+        self.result_table.column("英语", width=60, anchor=tk.CENTER)
+        self.result_table.column("总分", width=60, anchor=tk.CENTER)
+        self.result_table.column("平均分", width=70, anchor=tk.CENTER)
+        self.result_table.column("排名", width=50, anchor=tk.CENTER)
+        self.result_table.column("等级", width=50, anchor=tk.CENTER)
     
     def clear_table(self):
         """
@@ -472,25 +472,27 @@ class QueryInfoPage(ttk.Frame):
         self.clear_table()
         for grade in results:
             # 计算总分和平均分
-            total = grade["语文"] + grade["数学"] + grade["英语"] + grade["物理"] + grade["化学"]
-            average = round(total / 5, 2)
-            
+            total = grade.get("总分", grade["语文"] + grade["数学"] + grade["英语"])
+            average = grade.get("平均分", round(total / 3, 2))
+            rank = grade.get("排名", "-")
+            level = grade.get("等级", "-")
+
             self.result_table.insert(
-                "", 
-                tk.END, 
+                "",
+                tk.END,
                 values=(
                     grade["学号"],
                     grade["姓名"],
                     grade["语文"],
                     grade["数学"],
                     grade["英语"],
-                    grade["物理"],
-                    grade["化学"],
                     total,
-                    average
+                    average,
+                    rank,
+                    level
                 )
             )
-        
+
         # 提示结果数量
         messagebox.showinfo("查询结果", f"共找到 {len(results)} 条记录")
     
@@ -548,12 +550,16 @@ class QueryInfoPage(ttk.Frame):
         else:
             # 成绩统计信息
             if self.app.grade_data:
+                total = len(self.app.grade_data)
                 # 计算各科平均成绩
-                avg_chinese = round(sum(g["语文"] for g in self.app.grade_data) / len(self.app.grade_data), 2)
-                avg_math = round(sum(g["数学"] for g in self.app.grade_data) / len(self.app.grade_data), 2)
-                avg_english = round(sum(g["英语"] for g in self.app.grade_data) / len(self.app.grade_data), 2)
-                
-                stats_text = f"平均成绩 - 语文: {avg_chinese} | 数学: {avg_math} | 英语: {avg_english}"
+                avg_chinese = round(sum(g["语文"] for g in self.app.grade_data) / total, 2)
+                avg_math = round(sum(g["数学"] for g in self.app.grade_data) / total, 2)
+                avg_english = round(sum(g["英语"] for g in self.app.grade_data) / total, 2)
+                avg_total = round(sum(g.get("总分", 0) for g in self.app.grade_data) / total, 2)
+                avg_average = round(avg_total / 3, 2)
+
+                stats_text = (f"人数: {total} | 语文: {avg_chinese} | 数学: {avg_math} | "
+                              f"英语: {avg_english} | 总分: {avg_total} | 平均分: {avg_average}")
                 ttk.Label(self.stats_frame, text=stats_text, style="Normal.TLabel").pack(side=tk.LEFT)
     
     def export_data(self):
@@ -573,18 +579,22 @@ class QueryInfoPage(ttk.Frame):
                 header = ["学号", "姓名", "性别", "班级", "电话"]
                 data = self.app.student_data
             else:
-                # 导出成绩信息（含总分和平均分）
+                # 导出成绩信息（含总分、平均分、排名、等级）
                 filename = "成绩信息.csv"
-                header = ["学号", "姓名", "语文", "数学", "英语", "物理", "化学", "总分", "平均分"]
-                
+                header = ["学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级"]
+
                 # 计算总分和平均分
                 data = []
                 for grade in self.app.grade_data:
-                    total = grade["语文"] + grade["数学"] + grade["英语"] + grade["物理"] + grade["化学"]
-                    average = round(total / 5, 2)
+                    total = grade.get("总分", grade["语文"] + grade["数学"] + grade["英语"])
+                    average = grade.get("平均分", round(total / 3, 2))
+                    rank = grade.get("排名", "-")
+                    level = grade.get("等级", "-")
                     grade_copy = grade.copy()
                     grade_copy["总分"] = total
                     grade_copy["平均分"] = average
+                    grade_copy["排名"] = rank
+                    grade_copy["等级"] = level
                     data.append(grade_copy)
             
             # 写入CSV文件（使用utf-8-sig编码支持中文）

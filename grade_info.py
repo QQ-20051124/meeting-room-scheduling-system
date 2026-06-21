@@ -6,6 +6,25 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
+import csv
+import os
+
+# 数据文件路径
+GRADE_DATA_FILE = "grades_data.csv"
+
+
+def save_grade_data(data):
+    """保存成绩数据到文件"""
+    try:
+        with open(GRADE_DATA_FILE, "w", encoding="utf-8-sig", newline="") as f:
+            fieldnames = ["学号", "姓名", "语文", "数学", "英语", "总分", "平均分", "排名", "等级"]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+        return True
+    except Exception as e:
+        messagebox.showerror("错误", f"保存成绩数据失败: {str(e)}")
+        return False
 
 
 def get_grade_level(score):
@@ -307,6 +326,7 @@ class GradeInfoPage(ttk.Frame):
         self.app.grade_data.append(grade_data)
         calculate_ranks(self.app.grade_data)
         self.update_grade_table()
+        save_grade_data(self.app.grade_data)
         self.reset_form()
         messagebox.showinfo("成功", "成绩信息添加成功！")
 
@@ -327,6 +347,7 @@ class GradeInfoPage(ttk.Frame):
 
         calculate_ranks(self.app.grade_data)
         self.update_grade_table()
+        save_grade_data(self.app.grade_data)
         self.reset_form()
         self.edit_mode = False
         self.add_btn.config(text="+ 添加")
@@ -351,6 +372,7 @@ class GradeInfoPage(ttk.Frame):
 
         calculate_ranks(self.app.grade_data)
         self.update_grade_table()
+        save_grade_data(self.app.grade_data)
         self.reset_form()
         self.selected_grade = None
         messagebox.showinfo("成功", "成绩信息删除成功！")

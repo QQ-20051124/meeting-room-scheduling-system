@@ -24,6 +24,25 @@
 # 导入Tkinter库
 import tkinter as tk
 from tkinter import ttk, messagebox
+import csv
+import os
+
+# 数据文件路径
+STUDENT_DATA_FILE = "students_data.csv"
+
+
+def save_student_data(data):
+    """保存学生数据到文件"""
+    try:
+        with open(STUDENT_DATA_FILE, "w", encoding="utf-8-sig", newline="") as f:
+            fieldnames = ["学号", "姓名", "性别", "班级", "电话"]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+        return True
+    except Exception as e:
+        messagebox.showerror("错误", f"保存学生数据失败: {str(e)}")
+        return False
 
 
 class StudentInfoPage(ttk.Frame):
@@ -366,6 +385,9 @@ class StudentInfoPage(ttk.Frame):
         # 更新表格显示
         self.update_student_table()
         
+        # 保存到文件
+        save_student_data(self.app.student_data)
+        
         # 重置表单
         self.reset_form()
         
@@ -402,6 +424,9 @@ class StudentInfoPage(ttk.Frame):
         
         # 更新表格显示
         self.update_student_table()
+        
+        # 保存到文件
+        save_student_data(self.app.student_data)
         
         # 重置表单并退出编辑模式
         self.reset_form()
@@ -443,6 +468,9 @@ class StudentInfoPage(ttk.Frame):
         
         # 更新表格显示
         self.update_student_table()
+        
+        # 保存到文件
+        save_student_data(self.app.student_data)
         
         # 重置表单
         self.reset_form()
